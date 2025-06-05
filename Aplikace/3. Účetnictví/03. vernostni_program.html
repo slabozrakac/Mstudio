@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Věrnostní systém - Admin</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #000; color: #fff; }
+    table { border-collapse: collapse; width: 100%; background: #111; color: #fff; }
+    th, td { border: 1px solid #555; padding: 0.5rem; text-align: center; }
+    th { background: #222; }
+    button { padding: 0.5rem; margin: 0.2rem; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
+    .add { background-color: #4caf50; color: #fff; }
+    .remove { background-color: #f44336; color: #fff; }
+    .export { background-color: #ff9800; color: #000; }
+    .filter, .form-section { margin: 1rem 0; }
+    input[type="text"] { padding: 0.5rem; width: 200px; margin-right: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Věrnostní systém - Admin</h1>
+
+  <div class="form-section">
+    <input type="text" id="newClientId" placeholder="Zadejte ID nebo jméno klienta" />
+    <button onclick="addClient()">Přidat klienta</button>
+    <button onclick="exportAllClients()">Exportovat vše do JSON</button>
+    <label style="display:inline-block; margin-top: 0.5rem;">
+      Načíst JSON – vyberte soubor:
+      <input type="file" id="importJson" onchange="importClients(event)" />
+    </label>
+  </div>
+
+  <div class="filter">
+    <input type="text" id="filterInput" placeholder="Filtruj klienty..." oninput="updateTable()" />
+    <button onclick="clearFilter()">Zrušit filtr</button>
+  </div>
+
+  <table id="clientTable">
+    <thead>
+      <tr>
+        <th>Klient</th>
+        <th>Body</th>
+        <th>Bonus</th>
+        <th>Extra bonus</th>
+        <th>Body celkem</th>
+        <th>Akce</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data klientů sem přijde dynamicky -->
+    </tbody>
+  </table>
+
+  <script>
+    let clients = [];
+
+    function updateTable() {
+      const tbody = document.querySelector("#clientTable tbody");
+      const filter = document.getElementById("filterInput").value.toLowerCase();
+      tbody.innerHTML = "";
+      clients.forEach((client, index) => {
+        if (!client.id.toLowerCase().includes(filter)) return;
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${client.id}</td>
+          <td>${client.body}</td>
+          <td>${client.bonus}</td>
+          <td>${client.extra}</td>
+          <td>${client.total}</td>
+          <td>
+            <button class="add" onclick="addPoint(${index})">+1 bod</button>
+            <button class="remove" onclick="removePoint(${index})">-1 bod</button>
+            <button class="export" onclick="exportClient(${index})">Export TXT</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function addPoint(index) {
+      let c = clients[index];
+      c.body++;
+      if (c.body >= 9) {
+        c.body = 0;
+        c.bonus++;
+        c.total += 9;
+        if (c.bonus % 3 === 0) {
+          c.extra++;
+        }
+      }
+      updateTable();
+    }
+
+    function removePoint(index) {
+      let c = clients[index];
+      if (c.body > 0) c.body--;
+      updateTable();
+    }
+
+    function exportClient(index) {
+      const client = clients[index];
+      const data = `ID: ${client.id}\nBody: ${client.body}\nBonus: ${client.bonus}\nExtra: ${client.extra}\nCelkem: ${client.total}`;
+      const blob = new Blob([data], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${client.id}.txt`;
+      link.click();
+    }
+
+    function exportAllClients() {
+      const blob = new Blob([JSON.stringify(clients, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "vernostni_klienti.json";
+      link.click();
+    }
+
+    function importClients(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        clients = JSON.parse(e.target.result);
+        updateTable();
+      };
+      reader.readAsText(file);
+    }
+
+    function addClient() {
+      const input = document.getElementById("newClientId");
+      const id = input.value.trim();
+      if (!id) return;
+      if (clients.find(c => c.id === id)) return alert("Klient už existuje.");
+      clients.push({ id: id, body: 0, bonus: 0, extra: 0, total: 0 });
+      input.value = "";
+      updateTable();
+    }
+
+    function clearFilter() {
+      document.getElementById("filterInput").value = "";
+      updateTable();
+    }
+  </script>
+</body>
+</html>

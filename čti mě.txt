@@ -1,0 +1,61 @@
+Mstudio - Jednoduché Nástroje pro Maséry
+Vítejte v Mstudio, komplexním balíčku aplikací navržených pro efektivní a intuitivní správu masérny. Tento projekt vznikl z potřeby vytvořit praktické a přístupné řešení, které by překonalo omezení běžných kancelářských programů a CRM systémů.
+
+O projektu
+Mstudio je sada 16 jednoduchých HTML aplikací, které jsem vyvinul s pomocí umělé inteligence. Každá aplikace je šitá na míru specifickým potřebám masérů a je navržena s důrazem na jednoduchost, přehlednost a maximální přístupnost, zejména pro ovládání klávesnicí a pro práci se čtečkami obrazovky.
+
+Pro koho je Mstudio určeno?
+Projekt Mstudio je primárně určen pro maséry a živnostníky, kteří hledají spolehlivé, offline a uživatelsky přívětivé nástroje pro správu svého podnikání. Díky svému designu je obzvláště vhodný pro uživatele se zrakovým postižením, kteří ocení vysoký kontrast a plnou podporu klávesnicové navigace.
+
+Klíčové vlastnosti
+Kompletní správa masérny: Od evidence klientů a jejich masážní historie, přes účetnictví, správu poukazů a věrnostního programu, až po skladové hospodářství.
+
+Osobní nástroje: Obsahuje i aplikace pro osobní poznámky, to-do listy, plánovač událostí, správce audioknih a zábavné osmisměrky.
+
+Offline funkčnost: Všechny aplikace fungují lokálně na vašem počítači bez nutnosti připojení k internetu.
+
+Kontrola nad daty: Veškerá data jsou ukládána ve formátu JSON souborů, což vám dává plnou kontrolu nad jejich exportem, importem a zálohováním.
+
+Přístupnost: Navrženo s ohledem na zrakové omezení, s vysokým kontrastem, velkým písmem a plnou podporou klávesnicové navigace a čteček obrazovky.
+
+Responzivní design: Dashboard a aplikace jsou optimalizovány pro použití na stolních počítačích i mobilních zařízeních.
+
+Struktura projektu
+Projekt je organizován do dvou hlavních složek:
+
+Aplikace/: Obsahuje všechny HTML aplikace, roztříděné do logických kategorií (Klienti, Účetnictví, Poznámky, Osobní, Generátory).
+
+Data/: Zde se doporučuje ukládat veškeré JSON soubory s daty z aplikací, včetně podsložek pro json_data a zálohy_json.
+
+Jak začít?
+Mstudio je k dispozici jako zip soubor. Zkopírujte si ho na místo, kde ho chcete mít (například do dokumentů nebo na plochu). Rozbalte zip archiv. Ve složce, kde jste ho rozbalili, se bude nyní nacházet složka s názvem Mstudio. V ní naleznete vše potřebné.
+
+Pro spuštění otevřete soubor Mstudio.html, a to přímo ve složce Mstudio. Tím se vám otevře stránka s dashboardem.
+
+Dashboard vám nabídne přehledný seznam všech aplikací. Pro navigaci použijte klávesu Tab a pro spuštění aplikace Enter.
+
+Pro detailní instrukce k používání jednotlivých aplikací klikněte na tlačítko "Zobrazit kompletní návod k použití" přímo na dashboardu.
+
+Mstudio můžete rozběhnout obrazně řečeno i na kalkulačce. Aplikace jsou jednoduché, malé a nezabírají moc místa. Nezáleží na tom, na jakém systému je budete používat. Můžete je používat na všem, co má webový prohlížeč – ve Windows, macOS, Linuxu, Androidu i iOS. Jen si průběžně ukládejte JSON soubory, ať nepřijdete o žádná data.
+
+Upozornění: Použití Mstudia na mobilních zařízeních
+Pokud budete používat Mstudio na mobilu (Android, iOS), je důležité vědět, že aplikace nelze spouštět přímo z dashboardu (Mstudio.html), pokud je celý projekt otevřen lokálně z disku.
+
+Proč se to děje (laicky řečeno):
+
+Když otevřete HTML soubor přímo z disku na počítači, prohlížeč má volný přístup k dalším souborům ve stejné složce (nebo podsložkách). Na mobilu a v jejich prohlížečích jsou ale bezpečnostní pravidla mnohem přísnější. Mobilní operační systémy a prohlížeče často považují lokální soubory za "izolované" a nechtějí jim dovolit otevírat jiné lokální soubory z bezpečnostních důvodů. Je to jako byste měli každý soubor v malé, oddělené krabičce a nemohly se navzájem "vidět". Proto se dashboard sice spustí, ale odkazy na další aplikace už nefungují, protože prohlížeč jim nedovolí k těm souborům přistoupit.
+
+Řešení pro mobilní použití:
+
+Na mobilu budete muset jednotlivé aplikace spouštět přímo z jejich souborů v kategorii Aplikace/ (např. Aplikace/2. Klienti/01. klienti.html), nikoli přes dashboard.
+
+Open Source a spolupráce
+Mstudio je open source projekt. To znamená, že je volně dostupný k použití, úpravám a sdílení. Mým cílem je pomoci ostatním masérům, zejména těm se zrakovým postižením, efektivně spravovat své podnikání. Je možné, že v budoucnu přibydou další aplikace. Pokud ano, budu je s vámi sdílet a poskytnu podrobný návod, jak si je přidat do dashboardu. Kdybyste i vy vytvořili nějakou aplikaci, tak ji sdílejte s ostatními, ať si každý může rozšířit svoji sbírku.
+
+Vaše návrhy na vylepšení, připomínky či konstruktivní kritika jsou velmi vítány. Neváhejte mě kontaktovat, pokud máte dotazy nebo nápady, jak Mstudio dále zlepšit.
+
+Kontakt
+Jan Šimek
+Email: Simek.jan1@gmail.com
+
+Děkuji za váš zájem o Mstudio!

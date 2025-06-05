@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Generátor QR kódů</title>
+  <style>
+    body { background: #000; color: #fff; font-family: sans-serif; text-align: center; padding: 2rem; }
+    h1 { font-size: 2rem; margin-bottom: 1rem; }
+    input, select, button {
+      font-size: 1.2rem;
+      padding: 0.5rem;
+      margin: 0.5rem;
+      border-radius: 5px;
+      border: none;
+    }
+    input[type="text"] {
+      width: 60%;
+    }
+    button {
+      cursor: pointer;
+      font-weight: bold;
+      background: #4caf50;
+      color: #fff;
+    }
+    #qr-code {
+      margin: 2rem 0;
+    }
+    canvas {
+      background: #fff;
+      padding: 1rem;
+    }
+    @media (max-width: 600px) {
+      input[type="text"] {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Generátor QR kódů</h1>
+
+  <div>
+    <input type="text" id="qrText" placeholder="Zadejte text nebo URL...">
+    <br>
+    <label for="qrSize">Velikost:</label>
+    <select id="qrSize">
+      <option value="150">150x150</option>
+      <option value="300" selected>300x300</option>
+      <option value="500">500x500</option>
+    </select>
+    <br>
+    <button onclick="generateQR()">Vygenerovat QR kód</button>
+    <button onclick="downloadQR()">Stáhnout jako PNG</button>
+    <button onclick="clearForm()">Vyčistit</button>
+  </div>
+
+  <div id="qr-code"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    let qr;
+
+    function generateQR() {
+      const container = document.getElementById("qr-code");
+      container.innerHTML = "";
+      const text = document.getElementById("qrText").value.trim();
+      const size = parseInt(document.getElementById("qrSize").value);
+      if (!text) return;
+
+      qr = new QRCode(container, {
+        text: text,
+        width: size,
+        height: size,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+      });
+    }
+
+    function downloadQR() {
+      const img = document.querySelector("#qr-code img");
+      const canvas = document.querySelector("#qr-code canvas");
+
+      if (img) {
+        const a = document.createElement('a');
+        a.href = img.src;
+        a.download = "qrcode.png";
+        a.click();
+      } else if (canvas) {
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL("image/png");
+        a.download = "qrcode.png";
+        a.click();
+      }
+    }
+
+    function clearForm() {
+      document.getElementById("qrText").value = "";
+      document.getElementById("qr-code").innerHTML = "";
+    }
+  </script>
+</body>
+</html>

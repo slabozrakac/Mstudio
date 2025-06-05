@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generátor dárkových poukazů</title>
+    <!-- Načtení Tailwind CSS pro rychlé a responzivní stylování -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Načtení jsPDF knihovny pro generování PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Načtení vybraných Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Základní styly pro tělo stránky - TMAVÝ REŽIM pro UI */
+        body {
+            font-family: 'Inter', sans-serif; /* Používáme Inter jako hlavní font, je moderní a čitelný */
+            background: #1a202c; /* Tmavě šedé pozadí (skoro černé) pro vysoký kontrast */
+            color: #e2e8f0; /* Světlý text pro kontrast s tmavým pozadím */
+            padding: 1rem; /* Vnitřní odsazení */
+            display: flex;
+            flex-direction: column; /* Uspořádání prvků pod sebou */
+            align-items: center; /* Centrování obsahu horizontálně */
+            min-height: 100vh; /* Minimální výška stránky na celou obrazovku */
+            box-sizing: border-box; /* Zahrnuje padding do celkové velikosti */
+        }
+
+        /* Styly pro nadpis */
+        h1 {
+            font-size: 2.5rem; /* Větší nadpis */
+            margin-bottom: 2rem; /* Větší mezera pod nadpisem */
+            color: #90cdf4; /* Světlejší modrá barva pro nadpis pro lepší viditelnost */
+            font-weight: 700; /* Tučné písmo */
+        }
+
+        /* Styly pro popisky formuláře */
+        label {
+            display: block; /* Každý popisek na novém řádku */
+            margin: 0.75rem auto; /* Svislá mezera a centrování */
+            font-size: 1rem; /* Velikost písma */
+            width: 90%; /* Šířka popisku */
+            max-width: 450px; /* Maximální šířka pro lepší čitelnost */
+            text-align: left; /* Zarovnání popisků doleva */
+            color: #cbd5e0; /* Světlejší šedá barva pro popisky */
+            font-weight: 500; /* Středně tučné písmo */
+        }
+
+        /* Styly pro vstupní pole (text, barva, textarea, select, number) - TMAVÝ REŽIM pro UI */
+        input[type="text"],
+        input[type="color"],
+        input[type="number"], /* Nový typ pro velikost písma */
+        textarea,
+        select {
+            display: block; /* Každé pole na novém řádku */
+            margin-top: 0.375rem; /* Malá mezera nad polem */
+            padding: 0.75rem 1rem; /* Větší vnitřní odsazení */
+            font-size: 1rem; /* Velikost písma */
+            width: 100%; /* Šířka 100% vzhledem k rodiči */
+            border: 1px solid #4a5568; /* Tmavší rámeček pro kontrast */
+            border-radius: 0.5rem; /* Zaoblené rohy */
+            box-sizing: border-box; /* Zahrnuje padding do šířky */
+            background-color: #2d3748; /* Tmavší pozadí pole */
+            color: #e2e8f0; /* Světlý text uvnitř polí */
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Plynulé přechody */
+        }
+
+        /* Styly pro vstupní pole při najetí myší nebo zaostření - TMAVÝ REŽIM pro UI */
+        input[type="text"]:focus,
+        input[type="color"]:focus,
+        input[type="number"]:focus, /* Nový typ pro velikost písma */
+        textarea:focus,
+        select:focus {
+            outline: none; /* Odstraní výchozí obrys */
+            border-color: #63b3ed; /* Modrý rámeček při zaostření */
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); /* Jemný modrý stín */
+        }
+
+        /* Styly pro input typu file - TMAVÝ REŽIM pro UI */
+        input[type="file"] {
+            margin-top: 0.375rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #4a5568;
+            border-radius: 0.5rem;
+            background-color: #2d3748;
+            color: #e2e8f0;
+        }
+
+        /* Styly pro canvas (náhled poukazu) */
+        canvas {
+            display: block;
+            margin: 2.5rem auto; /* Větší svislá mezera a centrování */
+            border: 1px solid #4a5568; /* Jemný rámeček pro tmavý režim UI */
+            border-radius: 0.75rem; /* Zaoblené rohy */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2); /* Výraznější stín */
+            max-width: 95%; /* Responzivní šířka canvasu */
+            height: auto; /* Zachování poměru stran */
+        }
+
+        /* Skupina tlačítek */
+        .button-group {
+            display: flex;
+            flex-wrap: wrap; /* Zalomení tlačítek na více řádků na malých obrazovkách */
+            justify-content: center; /* Centrování tlačítek */
+            gap: 1.25rem; /* Větší mezera mezi tlačítky */
+            margin-top: 1.5rem;
+            margin-bottom: 3rem; /* Větší mezera pod skupinou tlačítek */
+            width: 90%;
+            max-width: 700px; /* Maximální šířka pro skupinu tlačítek */
+        }
+
+        /* Styly pro tlačítka */
+        button {
+            padding: 0.875rem 1.75rem; /* Větší padding pro lepší dotykové cíle */
+            font-size: 1.05rem; /* Mírně větší písmo */
+            font-weight: 600; /* Tučnější písmo */
+            color: white; /* Bílý text tlačítek */
+            border: none;
+            border-radius: 0.625rem; /* Více zaoblené rohy */
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease; /* Plynulé přechody */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Stín pro tlačítka */
+            min-width: 160px; /* Minimální šířka tlačítek */
+        }
+
+        /* Barvy pro jednotlivá tlačítka */
+        .bg-green-500 { background-color: #4CAF50; }
+        .hover\:bg-green-600:hover { background-color: #45A049; }
+        .bg-red-500 { background-color: #F44336; }
+        .hover\:bg-red-600:hover { background-color: #D32F2F; }
+        .bg-blue-500 { background-color: #2196F3; }
+        .hover\:bg-blue-600:hover { background-color: #1976D2; }
+        .bg-purple-500 { background-color: #9C27B0; }
+        .hover\:bg-purple-600:hover { background-color: #7B1FA2; }
+        .bg-indigo-500 { background-color: #667EEA; } /* Nová barva pro nastavení */
+        .hover\:bg-indigo-600:hover { background-color: #5A67D8; }
+
+        /* Efekty tlačítek při najetí a kliknutí */
+        button:hover {
+            transform: translateY(-3px); /* Mírný posun nahoru při najetí myší */
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); /* Větší stín */
+        }
+        button:active {
+            transform: translateY(0); /* Návrat do původní pozice při kliknutí */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Speciální styl pro label tlačítka "Importovat data" */
+        label.import-button {
+            background-color: #9C27B0; /* Fialová barva */
+            color: white;
+            padding: 0.875rem 1.75rem;
+            border-radius: 0.625rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            font-size: 1.05rem;
+            font-weight: 600;
+            min-width: 160px;
+            display: flex; /* Aby se text a input zarovnaly */
+            align-items: center;
+            justify-content: center;
+        }
+        label.import-button:hover {
+            background-color: #7B1FA2;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        label.import-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Speciální styl pro label tlačítka "Importovat nastavení" */
+        label.import-settings-button { /* Nová třída */
+            background-color: #667EEA; /* Indigo barva */
+            color: white;
+            padding: 0.875rem 1.75rem;
+            border-radius: 0.625rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            font-size: 1.05rem;
+            font-weight: 600;
+            min-width: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        label.import-settings-button:hover {
+            background-color: #5A67D8;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        label.import-settings-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+
+        /* Skrytí inputu typu file uvnitř labelu */
+        label.import-button input[type="file"],
+        label.import-settings-button input[type="file"] { /* Upraveno pro novou třídu */
+            display: none;
+        }
+
+        /* Skupina pro nastavení rozložení textu */
+        .text-layout-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+            align-items: center;
+            justify-content: flex-start; /* Zarovnání doleva */
+            width: 100%;
+        }
+
+        .text-layout-controls select,
+        .text-layout-controls input[type="number"] {
+            width: auto; /* Aby se nepřetahovaly */
+            flex-grow: 1; /* Aby se roztáhly, pokud je místo */
+            min-width: 80px; /* Minimální šířka */
+        }
+        .text-layout-controls label { /* Styl pro vnitřní popisky v ovládacích prvcích */
+            width: auto;
+            margin: 0;
+            padding-right: 0.5rem;
+            font-size: 0.9rem;
+            color: #a0aec0; /* Světlejší šedá */
+        }
+
+
+        /* Responzivní úpravy pro menší obrazovky */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            label {
+                width: 95%;
+                max-width: none; /* Na menších obrazovkách necháme šířku volnou */
+            }
+            .button-group {
+                gap: 0.75rem;
+                width: 95%;
+            }
+            button, label.import-button, label.import-settings-button { /* Upraveno pro novou třídu */
+                width: calc(50% - 0.375rem); /* Dvě tlačítka na řádek */
+                padding: 0.75rem 1.25rem;
+                font-size: 0.95rem;
+            }
+            .text-layout-controls {
+                flex-direction: column; /* Na malých obrazovkách pod sebou */
+                align-items: flex-start;
+            }
+            .text-layout-controls select,
+            .text-layout-controls input[type="number"] {
+                width: 100%;
+                min-width: unset;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.75rem;
+                margin-bottom: 1.5rem;
+            }
+            button, label.import-button, label.import-settings-button { /* Upraveno pro novou třídu */
+                width: 100%; /* Jedno tlačítko na řádek */
+                min-width: unset; /* Odstraníme minimální šířku */
+            }
+        }
+        /* Styly pro modální okno - TMAVÝ REŽIM pro UI */
+        .modal {
+            display: none; /* Skryté ve výchozím nastavení */
+            position: fixed; /* Zůstává na místě i při posouvání */
+            z-index: 1000; /* Vysoká z-index hodnota, aby bylo nad ostatním obsahem */
+            left: 0;
+            top: 0;
+            width: 100%; /* Plná šířka */
+            height: 100%; /* Plná výška */
+            overflow: auto; /* Povolí posouvání, pokud je obsah příliš velký */
+            background-color: rgba(0,0,0,0.6); /* Tmavší pozadí s průhledností */
+            justify-content: center; /* Centrování obsahu horizontálně */
+            align-items: center; /* Centrování obsahu vertikálně */
+        }
+
+        .modal-content {
+            background-color: #2d3748; /* Tmavší pozadí modálního okna */
+            color: #e2e8f0; /* Světlý text v modálním okně */
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #4a5568; /* Tmavší rámeček */
+            width: 80%; /* Šířka modálního okna */
+            max-width: 500px; /* Maximální šířka */
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.4),0 6px 20px 0 rgba(0,0,0,0.3); /* Výraznější stín */
+            text-align: center;
+        }
+
+        .close-button {
+            color: #a0aec0; /* Světlejší šedá pro křížek */
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #e2e8f0; /* Světlejší při najetí */
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generátor dárkových poukazů</h1>
+
+    <label>Název firmy:
+        <input type="text" id="companyName" value="" placeholder="Název vaší firmy" class="rounded-lg">
+    </label>
+    <label>Adresa:
+        <input type="text" id="companyAddress" value="" placeholder="Vaše adresa" class="rounded-lg">
+    </label>
+    <label>Telefon:
+        <input type="text" id="companyPhone" value="" placeholder="Váš telefon" class="rounded-lg">
+    </label>
+    <label>Webová stránka:
+        <input type="text" id="companyWebsite" value="" placeholder="Váš web" class="rounded-lg">
+    </label>
+
+    <label>Nadpis poukazu:
+        <input type="text" id="title" value="Dárkový poukaz" class="rounded-lg">
+        <div class="text-layout-controls">
+            <label for="titleAlign">Zarovnání:</label>
+            <select id="titleAlign" class="rounded-lg">
+                <option value="center">Na střed</option>
+                <option value="left">Vlevo</option>
+                <option value="right">Vpravo</option>
+            </select>
+            <label for="titleOffsetY">Posun Y:</label>
+            <input type="number" id="titleOffsetY" value="0" class="rounded-lg">
+        </div>
+    </label>
+
+    <label>Název služby:
+        <input type="text" id="service" placeholder="Masáž lávovými kameny" class="rounded-lg">
+        <div class="text-layout-controls">
+            <label for="serviceAlign">Zarovnání:</label>
+            <select id="serviceAlign" class="rounded-lg">
+                <option value="center">Na střed</option>
+                <option value="left">Vlevo</option>
+                <option value="right">Vpravo</option>
+            </select>
+            <label for="serviceOffsetY">Posun Y:</label>
+            <input type="number" id="serviceOffsetY" value="0" class="rounded-lg">
+        </div>
+    </label>
+
+    <label>Jméno obdarovaného:
+        <input type="text" id="recipient" placeholder="Jméno obdarovaného" class="rounded-lg">
+        <div class="text-layout-controls">
+            <label for="recipientAlign">Zarovnání:</label>
+            <select id="recipientAlign" class="rounded-lg">
+                <option value="center">Na střed</option>
+                <option value="left">Vlevo</option>
+                <option value="right">Vpravo</option>
+            </select>
+            <label for="recipientOffsetY">Posun Y:</label>
+            <input type="number" id="recipientOffsetY" value="0" class="rounded-lg">
+        </div>
+    </label>
+
+    <label>Od koho (jméno dárce):
+        <input type="text" id="sender" placeholder="Jméno dárce" class="rounded-lg">
+        <div class="text-layout-controls">
+            <label for="senderAlign">Zarovnání:</label>
+            <select id="senderAlign" class="rounded-lg">
+                <option value="center">Na střed</option>
+                <option value="left">Vlevo</option>
+                <option value="right">Vpravo</option>
+            </select>
+            <label for="senderOffsetY">Posun Y:</label>
+            <input type="number" id="senderOffsetY" value="0" class="rounded-lg">
+        </div>
+    </label>
+
+    <label>Hodnota:
+        <input type="text" id="value" placeholder="např. 60 minut nebo 1000 Kč" class="rounded-lg">
+        <div class="text-layout-controls">
+            <label for="valueAlign">Zarovnání:</label>
+            <select id="valueAlign" class="rounded-lg">
+                <option value="center">Na střed</option>
+                <option value="left">Vlevo</option>
+                <option value="right">Vpravo</option>
+            </select>
+            <label for="valueOffsetY">Posun Y:</label>
+            <input type="number" id="valueOffsetY" value="0" class="rounded-lg">
+        </div>
+    </label>
+
+    <label>Platnost:
+        <input type="text" id="validity" placeholder="např. do 31. 12. 2025" class="rounded-lg">
+        <div class="text-layout-controls">
+            <label for="validityAlign">Zarovnání:</label>
+            <select id="validityAlign" class="rounded-lg">
+                <option value="center">Na střed</option>
+                <option value="left">Vlevo</option>
+                <option value="right">Vpravo</option>
+            </select>
+            <label for="validityOffsetY">Posun Y:</label>
+            <input type="number" id="validityOffsetY" value="0" class="rounded-lg">
+        </div>
+    </label>
+
+    <label>Věnování:
+        <textarea id="note" rows="3" placeholder="Např. Všechno nejlepší!" class="rounded-lg"></textarea>
+        <div class="text-layout-controls">
+            <label for="noteAlign">Zarovnání:</label>
+            <select id="noteAlign" class="rounded-lg">
+                <option value="center">Na střed</option>
+                <option value="left">Vlevo</option>
+                <option value="right">Vpravo</option>
+            </select>
+            <label for="noteOffsetY">Posun Y:</label>
+            <input type="number" id="noteOffsetY" value="0" class="rounded-lg">
+        </div>
+    </label>
+
+    <label>Doplňující informace:
+        <textarea id="additionalInfo" rows="3" placeholder="Zde můžete přidat další detaily nebo speciální vzkaz." class="rounded-lg"></textarea>
+        <div class="text-layout-controls">
+            <label for="additionalInfoAlign">Zarovnání:</label>
+            <select id="additionalInfoAlign" class="rounded-lg">
+                <option value="center">Na střed</option>
+                <option value="left">Vlevo</option>
+                <option value="right">Vpravo</option>
+            </select>
+            <label for="additionalInfoOffsetY">Posun Y:</label>
+            <input type="number" id="additionalInfoOffsetY" value="0" class="rounded-lg">
+        </div>
+    </label>
+
+    <label>Nahrát logo:
+        <input type="file" id="logoInput" accept="image/*" class="rounded-lg">
+    </label>
+
+    <label>Nahrát QR kód:
+        <input type="file" id="qrCodeInput" accept="image/*" class="rounded-lg">
+    </label>
+
+    <label>Nahrát doplňkový obrázek:
+        <input type="file" id="extraImageInput" accept="image/*" class="rounded-lg">
+    </label>
+
+    <label>Vybrat pozadí šablony:
+        <select id="template" class="rounded-lg">
+            <option value="dl">DL (210 × 99 mm)</option>
+            <option value="a4">A4 jednoduchá</option>
+            <option value="season-gradient">Sezónní: Gradient</option>
+            <option value="season-lake">Sezónní: Jezero</option>
+            <option value="custom">Vlastní pozadí</option>
+        </select>
+    </label>
+
+    <label>Nahrát vlastní pozadí:
+        <input type="file" id="backgroundInput" accept="image/*" class="rounded-lg">
+    </label>
+
+    <label>Barva textu:
+        <input type="color" id="textColor" value="#000000" class="rounded-lg">
+    </label>
+
+    <label>Font:
+        <select id="font" class="rounded-lg">
+            <!-- Původní fonty -->
+            <option value="sans-serif">Sans-serif</option>
+            <option value="serif">Serif</option>
+            <option value="monospace">Monospace</option>
+            <option value="Arial">Arial</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <!-- Přidané Google Fonts -->
+            <option value="Lato">Lato</option>
+            <option value="Merriweather">Merriweather</option>
+            <option value="Montserrat">Montserrat</option>
+            <option value="Open Sans">Open Sans</option>
+            <option value="Roboto">Roboto</option>
+        </select>
+    </label>
+
+    <label>Velikost nadpisu (px):
+        <input type="number" id="titleFontSize" value="36" min="10" max="100" class="rounded-lg">
+    </label>
+
+    <label>Velikost hlavního textu (px):
+        <input type="number" id="mainFontSize" value="20" min="8" max="60" class="rounded-lg">
+    </label>
+
+    <label>Velikost malého textu (patička, px):
+        <input type="number" id="smallFontSize" value="16" min="6" max="40" class="rounded-lg">
+    </label>
+
+    <canvas id="voucherCanvas" width="840" height="396"></canvas>
+
+    <div class="button-group">
+        <button onclick="downloadVoucherPng()" class="bg-green-500 hover:bg-green-600">Stáhnout jako PNG</button>
+        <button onclick="downloadVoucherPdf()" class="bg-red-500 hover:bg-red-600">Stáhnout jako PDF</button>
+        <button onclick="exportVoucherData()" class="bg-blue-500 hover:bg-blue-600">Exportovat data poukazu (JSON)</button>
+        <label class="import-button">
+            Importovat data poukazu (JSON)
+            <input type="file" id="importJsonInput" accept=".json" onchange="importVoucherData(event)">
+        </label>
+        <!-- Nová tlačítka pro export/import nastavení generátoru -->
+        <button onclick="exportGeneratorSettings()" class="bg-indigo-500 hover:bg-indigo-600">Exportovat nastavení (JSON)</button>
+        <label class="import-settings-button">
+            Importovat nastavení (JSON)
+            <input type="file" id="importSettingsJsonInput" accept=".json" onchange="importGeneratorSettings(event)">
+        </label>
+    </div>
+
+    <!-- Modální okno pro zprávy uživateli (nahrazuje alert()) -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <p id="modalMessage"></p>
+            <button onclick="closeModal()" class="bg-blue-500 hover:bg-blue-600 mt-4">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // Získání reference na canvas a jeho 2D kontext
+        const canvas = document.getElementById('voucherCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Inicializace obrázků. Používáme let, protože se mohou měnit.
+        let logoImage = new Image();
+        let customBg = null; // Pro vlastní pozadí
+        let gradientBg = new Image(); // Pro sezónní gradient
+        let lakeBg = new Image(); // Pro sezónní jezero
+        let qrCodeImage = new Image(); // Nový obrázek pro QR kód
+        let extraImage = new Image(); // Nový obrázek pro doplňkový obrázek
+
+        // Generování unikátního ID poukazu. Používáme let, aby se mohlo importovat.
+        let voucherId = Math.random().toString(36).substr(2, 8).toUpperCase();
+
+        /**
+         * Zobrazí modální okno se zprávou.
+         * Nahrazuje alert() pro lepší uživatelský zážitek.
+         * @param {string} message - Zpráva k zobrazení.
+         */
+        function showMessage(message) {
+            document.getElementById('modalMessage').innerText = message;
+            document.getElementById('modalModal').style.display = 'flex'; // Zobrazí modální okno
+        }
+
+        /**
+         * Zavře modální okno.
+         */
+        function closeModal() {
+            document.getElementById('modalModal').style.display = 'none'; // Skryje modální okno
+        }
+
+        /**
+         * Vytvoří jednoduchý base64 obrázek gradientu.
+         * Používá se jako placeholder nebo pro generované pozadí POUKAZU.
+         * @param {number} width - Šířka obrázku.
+         * @param {number} height - Výška obrázku.
+         * @returns {string} Base64 data URL obrázku.
+         */
+        function createGradientBase64(width, height) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tempCtx = tempCanvas.getContext('2d');
+            const gradient = tempCtx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, '#87CEEB'); // Světle modrá
+            gradient.addColorStop(1, '#ADD8E6'); // Ještě světlejší modrá
+            tempCtx.fillStyle = gradient;
+            tempCtx.fillRect(0, 0, width, height);
+            return tempCanvas.toDataURL('image/png');
+        }
+
+        /**
+         * Vytvoří jednoduchý base64 obrázek "jezerního" pozadí.
+         * Používá se jako placeholder nebo pro generované pozadí POUKAZU.
+         * @param {number} width - Šířka obrázku.
+         * @param {number} height - Výška obrázku.
+         * @returns {string} Base64 data URL obrázku.
+         */
+        function createLakeBase64(width, height) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.fillStyle = '#4682B4'; // Ocelově modrá
+            tempCtx.fillRect(0, 0, width, height);
+            // Přidáme trochu šumu pro efekt "jezera"
+            for (let i = 0; i < 1000; i++) {
+                const x = Math.random() * width;
+                const y = Math.random() * height;
+                const radius = Math.random() * 2;
+                const alpha = Math.random() * 0.3 + 0.1;
+                tempCtx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                tempCtx.beginPath();
+                tempCtx.arc(x, y, radius, 0, Math.PI * 2);
+                tempCtx.fill();
+            }
+            return tempCanvas.toDataURL('image/png');
+        }
+
+        /**
+         * Vytvoří jednoduchý placeholder obrázek loga.
+         * Používá se jako placeholder pro LOGO POUKAZU.
+         * @param {number} width - Šířka obrázku.
+         * @param {number} height - Výška obrázku.
+         * @returns {string} Base64 data URL obrázku.
+         */
+        function createLogoBase64(width, height) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.fillStyle = '#aabbcc'; // Šedá barva pozadí loga
+            tempCtx.fillRect(0, 0, width, height);
+            tempCtx.font = 'bold 30px Arial';
+            tempCtx.fillStyle = '#ffffff'; // Bílý text na logu
+            tempCtx.textAlign = 'center';
+            tempCtx.textBaseline = 'middle';
+            tempCtx.fillText('LOGO', width / 2, height / 2);
+            return tempCanvas.toDataURL('image/png');
+        }
+
+        // Nastavení výchozího loga a pozadí s generovanými base64 obrázky
+        // Tyto se načtou hned při startu aplikace
+        logoImage.src = createLogoBase64(100, 100);
+        gradientBg.src = createGradientBase64(840, 396);
+        lakeBg.src = createLakeBase64(840, 396);
+
+        // Počáteční vykreslení poukazu po načtení všech výchozích obrázků
+        // Zajišťuje, že se canvas zobrazí správně hned na začátku
+        Promise.all([
+            new Promise(resolve => logoImage.onload = resolve),
+            new Promise(resolve => gradientBg.onload = resolve),
+            new Promise(resolve => lakeBg.onload = resolve),
+            new Promise(resolve => qrCodeImage.onload = resolve), // Nové: QR kód
+            new Promise(resolve => extraImage.onload = resolve)   // Nové: Doplňkový obrázek
+        ]).then(() => {
+            drawVoucher();
+        });
+
+        /**
+         * Funkce pro načtení obrázku z inputu a jeho nastavení do proměnné.
+         * Po načtení obrázku se překreslí canvas.
+         * @param {string} inputElementId - ID HTML elementu input type="file".
+         * @param {string} imageVarName - Název globální proměnné, do které se obrázek uloží (např. 'logoImage', 'customBg').
+         * @param {boolean} isBackground - True, pokud se jedná o obrázek pozadí.
+         */
+        function loadImage(inputElementId, imageVarName, isBackground = false) {
+            document.getElementById(inputElementId).addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const img = new Image();
+                    img.onload = () => {
+                        if (isBackground) {
+                            // Ukládáme do customBg pro pozadí
+                            window[imageVarName] = img; // Používáme window[imageVarName] pro přístup k globální proměnné
+                            // Pokud je vybráno vlastní pozadí, nastavíme šablonu na 'custom'
+                            document.getElementById('template').value = 'custom';
+                        } else {
+                            // Ukládáme do logoImage, qrCodeImage nebo extraImage
+                            window[imageVarName] = img;
+                        }
+                        drawVoucher(); // Překreslíme canvas po načtení obrázku
+                    };
+                    img.onerror = () => {
+                        console.error(`Chyba při načítání obrázku z ${file.name}`);
+                        showMessage(`Chyba při načítání obrázku ${file.name}. Zkuste jiný soubor.`);
+                        // Můžeme nastavit zpět na placeholder, pokud se obrázek nenačetl
+                        if (isBackground) {
+                            window[imageVarName] = null;
+                            document.getElementById('template').value = 'dl'; // Vrátíme na výchozí šablonu
+                        } else {
+                            window[imageVarName] = new Image(); // Reset na prázdný obrázek
+                        }
+                        drawVoucher();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Nastavení event listenerů pro načítání loga a vlastního pozadí
+        loadImage('logoInput', 'logoImage', false);
+        loadImage('backgroundInput', 'customBg', true);
+        loadImage('qrCodeInput', 'qrCodeImage', false); // Nové: načítání QR kódu
+        loadImage('extraImageInput', 'extraImage', false); // Nové: načítání doplňkového obrázku
+
+        // Nastavení event listenerů pro změny ve formulářových prvcích (včetně nových pro rozložení a kontaktní údaje)
+        ['companyName', 'companyAddress', 'companyPhone', 'companyWebsite', // Nové kontaktní údaje
+         'title', 'service', 'recipient', 'sender', 'value', 'validity', 'note', 'additionalInfo', 'textColor', 'font', 'template', 'titleFontSize', 'mainFontSize', 'smallFontSize',
+         'titleAlign', 'titleOffsetY', 'serviceAlign', 'serviceOffsetY', 'recipientAlign', 'recipientOffsetY', 'senderAlign', 'senderOffsetY',
+         'valueAlign', 'valueOffsetY', 'validityAlign', 'validityOffsetY', 'noteAlign', 'noteOffsetY', 'additionalInfoAlign', 'additionalInfoOffsetY'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) { // Kontrola, zda prvek existuje (pro případ, že bychom později přidali další pole bez ovládání rozložení)
+                element.addEventListener('input', drawVoucher);
+                element.addEventListener('change', drawVoucher); // Pro select prvky, aby se změna projevila hned
+            }
+        });
+
+
+        /**
+         * Funkce pro vykreslení textu na canvas s dynamickým zarovnáním a posunem.
+         * @param {string} text - Text k vykreslení.
+         * @param {number} baseLineY - Základní Y souřadnice pro text (pokud by nebyl posun).
+         * @param {string} fontSize - Velikost fontu (např. "20px").
+         * @param {string} fontFamily - Název fontu.
+         * @param {string} align - Zarovnání textu ('left', 'center', 'right').
+         * @param {number} offsetY - Vertikální posun (kladná hodnota posune dolů, záporná nahoru).
+         * @returns {number} Aktuální Y pozice po vykreslení textu (pro navazující texty).
+         */
+        function drawText(text, baseLineY, fontSize, fontFamily, align, offsetY) {
+            ctx.font = `${fontSize} "${fontFamily}"`; // Nastavení fontu a velikosti
+            ctx.textAlign = align; // Nastavení zarovnání textu
+
+            let x;
+            if (align === 'left') {
+                x = canvas.width * 0.1; // 10% od levého okraje
+            } else if (align === 'right') {
+                x = canvas.width * 0.9; // 10% od pravého okraje
+            } else { // center
+                x = canvas.width / 2; // Střed canvasu
+            }
+
+            let currentY = baseLineY + parseInt(offsetY || 0); // Aplikace vertikálního posunu
+
+            // Rozdělení textu na více řádků, pokud je příliš dlouhý
+            const maxLineWidth = canvas.width * 0.8; // 80% šířky canvasu pro text
+            const words = text.split(' ');
+            let line = '';
+            let lines = [];
+            const lineHeight = parseInt(fontSize) * 1.2; // Dynamická výška řádku
+
+            for (let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const metrics = ctx.measureText(testLine);
+                const testWidth = metrics.width;
+                if (testWidth > maxLineWidth && n > 0) {
+                    lines.push(line);
+                    line = words[n] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            lines.push(line);
+
+            lines.forEach(l => {
+                ctx.fillText(l.trim(), x, currentY);
+                currentY += lineHeight;
+            });
+            return currentY; // Vrátí novou Y pozici
+        }
+
+
+        /**
+         * Hlavní funkce pro kreslení poukazu na canvas.
+         * Tato funkce je volána při každé změně vstupních dat.
+         */
+        function drawVoucher() {
+            // Získání hodnot z formulářových prvků
+            const companyName = document.getElementById('companyName').value; // Nové
+            const companyAddress = document.getElementById('companyAddress').value; // Nové
+            const companyPhone = document.getElementById('companyPhone').value; // Nové
+            const companyWebsite = document.getElementById('companyWebsite').value; // Nové
+
+            const title = document.getElementById('title').value;
+            const service = document.getElementById('service').value;
+            const recipient = document.getElementById('recipient').value;
+            const sender = document.getElementById('sender').value;
+            const value = document.getElementById('value').value;
+            const validity = document.getElementById('validity').value;
+            const note = document.getElementById('note').value;
+            const additionalInfo = document.getElementById('additionalInfo').value;
+            const textColor = document.getElementById('textColor').value;
+            const font = document.getElementById('font').value;
+            const template = document.getElementById('template').value;
+
+            // Získání hodnot pro velikosti písma
+            const titleFontSize = parseInt(document.getElementById('titleFontSize').value) || 36;
+            const mainFontSize = parseInt(document.getElementById('mainFontSize').value) || 20;
+            const smallFontSize = parseInt(document.getElementById('smallFontSize').value) || 16;
+
+            // Získání hodnot pro zarovnání a posun
+            const titleAlign = document.getElementById('titleAlign').value;
+            const titleOffsetY = parseInt(document.getElementById('titleOffsetY').value) || 0;
+            const serviceAlign = document.getElementById('serviceAlign').value;
+            const serviceOffsetY = parseInt(document.getElementById('serviceOffsetY').value) || 0;
+            const recipientAlign = document.getElementById('recipientAlign').value;
+            const recipientOffsetY = parseInt(document.getElementById('recipientOffsetY').value) || 0;
+            const senderAlign = document.getElementById('senderAlign').value;
+            const senderOffsetY = parseInt(document.getElementById('senderOffsetY').value) || 0;
+            const valueAlign = document.getElementById('valueAlign').value;
+            const valueOffsetY = parseInt(document.getElementById('valueOffsetY').value) || 0;
+            const validityAlign = document.getElementById('validityAlign').value;
+            const validityOffsetY = parseInt(document.getElementById('validityOffsetY').value) || 0;
+            const noteAlign = document.getElementById('noteAlign').value;
+            const noteOffsetY = parseInt(document.getElementById('noteOffsetY').value) || 0;
+            const additionalInfoAlign = document.getElementById('additionalInfoAlign').value;
+            const additionalInfoOffsetY = parseInt(document.getElementById('additionalInfoOffsetY').value) || 0;
+
+
+            /**
+             * Funkce pro kreslení obsahu poukazu (texty, logo).
+             * Je volána po vykreslení pozadí.
+             */
+            const drawContent = () => {
+                ctx.fillStyle = textColor; // Nastavení barvy textu
+                // ctx.textAlign bude nastaveno uvnitř drawText pro každý prvek zvlášť
+
+                let currentYOffset = 0; // Pomocná proměnná pro udržení vertikálního rozestupu mezi bloky
+
+                // Deklarace proměnných pro pozice a rozměry obrázků na začátku funkce
+                let logoX, logoY, logoWidth, logoHeight;
+                let qrX, qrY, qrSize = 80;
+                let extraImgX, extraImgY, extraImgWidth, extraImgHeight;
+
+
+                if (template === 'a4') {
+                    qrX = 50; // Levý dolní roh
+                    qrY = canvas.height - qrSize - 50;
+                    extraImgWidth = 200;
+                    extraImgHeight = 150;
+                    extraImgX = canvas.width / 2 - extraImgWidth / 2; // Střed dole
+                    extraImgY = canvas.height - extraImgHeight - 100;
+                    currentYOffset = 150; // Počáteční Y pozice pro text na A4
+
+                    logoX = canvas.width - 180;
+                    logoY = 50;
+                    logoWidth = 120;
+                    logoHeight = 120;
+                } else { // DL
+                    qrX = 20; // Levý dolní roh
+                    qrY = canvas.height - qrSize - 20;
+                    extraImgWidth = 150;
+                    extraImgHeight = 100;
+                    extraImgX = 20; // Levá strana, zhruba uprostřed výšky
+                    extraImgY = canvas.height / 2 - extraImgHeight / 2;
+                    currentYOffset = 60; // Počáteční Y pozice pro text na DL
+
+                    logoX = canvas.width - 140;
+                    logoY = 20;
+                    logoWidth = 100;
+                    logoHeight = 100;
+                }
+
+                // Nadpis poukazu
+                currentYOffset = drawText(title, currentYOffset, `bold ${titleFontSize}px`, font, titleAlign, titleOffsetY);
+                currentYOffset += (template === 'a4' ? 40 : 20);
+
+                // Název služby
+                currentYOffset = drawText(service, currentYOffset, `${mainFontSize}px`, font, serviceAlign, serviceOffsetY);
+                currentYOffset += (template === 'a4' ? 30 : 15);
+
+                // Jméno obdarovaného (pokud je vyplněno)
+                if (recipient.trim()) {
+                    currentYOffset = drawText("Pro: " + recipient, currentYOffset, `${mainFontSize}px`, font, recipientAlign, recipientOffsetY);
+                    currentYOffset += (template === 'a4' ? 30 : 15);
+                }
+
+                // Jméno dárce (pokud je vyplněno)
+                if (sender.trim()) {
+                    currentYOffset = drawText("Od: " + sender, currentYOffset, `${mainFontSize}px`, font, senderAlign, senderOffsetY);
+                    currentYOffset += (template === 'a4' ? 30 : 15);
+                }
+
+                // Hodnota
+                currentYOffset = drawText("Hodnota: " + value, currentYOffset, `${mainFontSize}px`, font, valueAlign, valueOffsetY);
+                currentYOffset += (template === 'a4' ? 30 : 15);
+
+                // Platnost
+                currentYOffset = drawText("Platnost: " + validity, currentYOffset, `${mainFontSize}px`, font, validityAlign, validityOffsetY);
+                currentYOffset += (template === 'a4' ? 30 : 15);
+
+                // Věnování (pokud je vyplněno)
+                if (note.trim()) {
+                    currentYOffset = drawText(note, currentYOffset, `${mainFontSize}px`, font, noteAlign, noteOffsetY);
+                    currentYOffset += (template === 'a4' ? 25 : 10);
+                }
+
+                // Doplňující informace (pokud je vyplněno)
+                if (additionalInfo.trim()) {
+                    currentYOffset = drawText(additionalInfo, currentYOffset, `${smallFontSize}px`, font, additionalInfoAlign, additionalInfoOffsetY);
+                    currentYOffset += (template === 'a4' ? 25 : 10);
+                }
+
+                // Kreslení loga (pokud je načteno a kompletní)
+                if (logoImage && logoImage.complete) {
+                    ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
+                } else {
+                    logoImage.src = createLogoBase64(100, 100);
+                    logoImage.onload = drawVoucher;
+                }
+
+                // Kreslení QR kódu (pokud je načteno a kompletní)
+                if (qrCodeImage && qrCodeImage.complete) {
+                    ctx.drawImage(qrCodeImage, qrX, qrY, qrSize, qrSize);
+                } else {
+                    qrCodeImage = new Image(); // Ensure it's cleared if not present
+                }
+
+                // Kreslení doplňkového obrázku (pokud je načteno a kompletní)
+                if (extraImage && extraImage.complete) {
+                    ctx.drawImage(extraImage, extraImgX, extraImgY, extraImgWidth, extraImgHeight);
+                } else {
+                    extraImage = new Image(); // Ensure it's cleared if not present
+                }
+
+                // ID poukazu a kontaktní údaje (patička)
+                // Tyto prvky se umisťují fixně na spodní část poukazu a nebudou mít vlastní ovládání zarovnání/posunu pro zjednodušení.
+                // Vždy budou na středu dole, ale jejich Y pozici přizpůsobíme šabloně.
+                ctx.fillStyle = textColor;
+                ctx.textAlign = 'center';
+                let footerY = canvas.height - (template === 'a4' ? 80 : 80); // Pozice patičky pro A4 a DL
+
+                ctx.font = `${smallFontSize}px "${font}"`;
+                ctx.fillText("ID poukazu: " + voucherId, canvas.width / 2, footerY);
+                footerY += smallFontSize + 5;
+                // Vykreslujeme kontaktní údaje pouze pokud jsou vyplněné
+                if (companyName.trim()) {
+                    ctx.fillText(companyName, canvas.width / 2, footerY); // Dynamický název firmy
+                    footerY += smallFontSize + 5;
+                }
+                if (companyAddress.trim()) {
+                    ctx.fillText(companyAddress, canvas.width / 2, footerY); // Dynamická adresa
+                    footerY += smallFontSize + 5;
+                }
+                if (companyPhone.trim() && companyWebsite.trim()) {
+                    ctx.fillText("Tel: " + companyPhone + " | " + companyWebsite, canvas.width / 2, footerY); // Dynamický telefon a web
+                } else if (companyPhone.trim()) {
+                    ctx.fillText("Tel: " + companyPhone, canvas.width / 2, footerY);
+                } else if (companyWebsite.trim()) {
+                    ctx.fillText(companyWebsite, canvas.width / 2, footerY);
+                }
+            };
+
+            /**
+             * Funkce pro kreslení pozadí poukazu na základě vybrané šablony.
+             * Po vykreslení pozadí volá drawContent().
+             */
+            const drawBackground = () => {
+                // Resetování rozměrů canvasu na výchozí DL
+                canvas.width = 840; // DL šířka v pixelech (při 96 DPI)
+                canvas.height = 396; // DL výška v pixelech (při 96 DPI)
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // Vyčištění canvasu
+
+                switch (template) {
+                    case "season-gradient":
+                        // Kreslení gradient pozadí
+                        if (gradientBg.complete) {
+                            ctx.drawImage(gradientBg, 0, 0, canvas.width, canvas.height);
+                        } else {
+                            // Pokud se obrázek nenačetl, zkusíme ho znovu vygenerovat a načíst
+                            gradientBg.src = createGradientBase64(canvas.width, canvas.height);
+                            gradientBg.onload = drawVoucher;
+                        }
+                        break;
+                    case "season-lake":
+                        // Kreslení pozadí s jezerem
+                        if (lakeBg.complete) {
+                            ctx.drawImage(lakeBg, 0, 0, canvas.width, canvas.height);
+                        } else {
+                            // Pokud se obrázek nenačetl, zkusíme ho znovu vygenerovat a načíst
+                            lakeBg.src = createLakeBase64(canvas.width, canvas.height);
+                            lakeBg.onload = drawVoucher;
+                        }
+                        break;
+                    case "a4":
+                        // Nastavení rozměrů pro A4 a bílé pozadí
+                        canvas.width = 842; // A4 šířka v pixelech (při 96 DPI)
+                        canvas.height = 1191; // A4 výška v pixelech (při 96 DPI)
+                        ctx.fillStyle = "#ffffff"; // Bílé pozadí pro A4
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        break;
+                    case "custom":
+                        // Kreslení vlastního pozadí
+                        if (customBg && customBg.complete) {
+                            ctx.drawImage(customBg, 0, 0, canvas.width, canvas.height);
+                        } else {
+                            // Pokud není vlastní pozadí, nebo se nenačetlo, vyčistíme a nastavíme bílé
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            ctx.fillStyle = "#ffffff"; // Výchozí bílá
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            // Zde již nebudeme zobrazovat zprávu, aby to nerušilo, pokud uživatel jen nevidí obrázek
+                        }
+                        break;
+                    default:
+                        // Výchozí DL velikost a bílé pozadí
+                        ctx.fillStyle = "#ffffff"; // Bílé pozadí pro DL
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                drawContent(); // Vykreslení obsahu po vykreslení pozadí
+            };
+
+            // Spuštění kreslení pozadí
+            drawBackground();
+        }
+
+        /**
+         * Funkce pro stažení poukazu jako PNG obrázek.
+         */
+        function downloadVoucherPng() {
+            try {
+                const link = document.createElement('a');
+                link.download = 'darkovy-poukaz.png';
+                link.href = canvas.toDataURL('image/png'); // Získání dat URL canvasu jako PNG
+                link.click(); // Spuštění stahování
+                showMessage("Poukaz byl úspěšně stažen jako PNG.");
+            } catch (error) {
+                console.error("Chyba při stahování PNG:", error);
+                showMessage("Nastala chyba při stahování PNG. Zkuste to prosím znovu.");
+            }
+        }
+
+        /**
+         * Funkce pro stažení poukazu jako PDF dokument.
+         * Používá knihovnu jsPDF.
+         */
+        function downloadVoucherPdf() {
+            try {
+                const { jsPDF } = window.jspdf; // Získání jsPDF instance
+                const doc = new jsPDF({
+                    orientation: canvas.width > canvas.height ? 'l' : 'p', // Orientace na šířku/výšku podle canvasu
+                    unit: 'px', // Jednotky v pixelech
+                    format: [canvas.width, canvas.height] // Formát PDF podle rozměrů canvasu
+                });
+
+                // Přidání obrázku canvasu do PDF
+                doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+                doc.save('darkovy-poukaz.pdf'); // Uložení PDF souboru
+                showMessage("Poukaz byl úspěšně stažen jako PDF.");
+            } catch (error) {
+                console.error("Chyba při stahování PDF:", error);
+                showMessage("Nastala chyba při stahování PDF. Zkuste to prosím znovu.");
+            }
+        }
+
+        /**
+         * Funkce pro export aktuálních dat poukazu do JSON souboru.
+         */
+        function exportVoucherData() {
+            try {
+                const data = {
+                    companyName: document.getElementById('companyName').value,
+                    companyAddress: document.getElementById('companyAddress').value,
+                    companyPhone: document.getElementById('companyPhone').value,
+                    companyWebsite: document.getElementById('companyWebsite').value,
+                    title: document.getElementById('title').value,
+                    service: document.getElementById('service').value,
+                    recipient: document.getElementById('recipient').value,
+                    sender: document.getElementById('sender').value,
+                    value: document.getElementById('value').value,
+                    validity: document.getElementById('validity').value,
+                    note: document.getElementById('note').value,
+                    additionalInfo: document.getElementById('additionalInfo').value,
+                    textColor: document.getElementById('textColor').value,
+                    font: document.getElementById('font').value,
+                    template: document.getElementById('template').value,
+                    titleFontSize: document.getElementById('titleFontSize').value,
+                    mainFontSize: document.getElementById('mainFontSize').value,
+                    smallFontSize: document.getElementById('smallFontSize').value,
+                    // Exportujeme i nastavení zarovnání a posunu
+                    titleAlign: document.getElementById('titleAlign').value,
+                    titleOffsetY: document.getElementById('titleOffsetY').value,
+                    serviceAlign: document.getElementById('serviceAlign').value,
+                    serviceOffsetY: document.getElementById('serviceOffsetY').value,
+                    recipientAlign: document.getElementById('recipientAlign').value,
+                    recipientOffsetY: document.getElementById('recipientOffsetY').value,
+                    senderAlign: document.getElementById('senderAlign').value,
+                    senderOffsetY: document.getElementById('senderOffsetY').value,
+                    valueAlign: document.getElementById('valueAlign').value,
+                    valueOffsetY: document.getElementById('valueOffsetY').value,
+                    validityAlign: document.getElementById('validityAlign').value,
+                    validityOffsetY: document.getElementById('validityOffsetY').value,
+                    noteAlign: document.getElementById('noteAlign').value,
+                    noteOffsetY: document.getElementById('noteOffsetY').value,
+                    additionalInfoAlign: document.getElementById('additionalInfoAlign').value,
+                    additionalInfoOffsetY: document.getElementById('additionalInfoOffsetY').value,
+                    // Pro logo a pozadí uložíme base64 data, pokud existují
+                    logoData: logoImage.src.startsWith('data:') ? logoImage.src : null,
+                    customBgData: customBg && customBg.src.startsWith('data:') ? customBg.src : null,
+                    qrCodeData: qrCodeImage.src.startsWith('data:') ? qrCodeImage.src : null,
+                    extraImageData: extraImage.src.startsWith('data:') ? extraImage.src : null,
+                    voucherId: voucherId // Uložíme i ID poukazu
+                };
+
+                const jsonData = JSON.stringify(data, null, 2); // Převedení dat na formátovaný JSON řetězec
+                const blob = new Blob([jsonData], { type: 'application/json' }); // Vytvoření Blob objektu
+                const url = URL.createObjectURL(blob); // Vytvoření URL pro Blob
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'darkovy-poukaz-data.json'; // Název souboru
+                document.body.appendChild(link); // Přidání odkazu do DOM
+                link.click(); // Kliknutí na odkaz pro stažení
+                document.body.removeChild(link); // Odebrání odkazu z DOM
+                URL.revokeObjectURL(url); // Uvolnění URL objektu
+                showMessage("Data poukazu byla úspěšně exportována jako JSON.");
+            } catch (error) {
+                console.error("Chyba při exportu JSON dat:", error);
+                showMessage("Nastala chyba při exportu dat. Zkuste to prosím znovu.");
+            }
+        }
+
+        /**
+         * Funkce pro import dat poukazu z JSON souboru.
+         * @param {Event} event - Událost změny inputu souboru.
+         */
+        function importVoucherData(event) {
+            const file = event.target.files[0]; // Získání vybraného souboru
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = JSON.parse(e.target.result); // Parsrování JSON dat
+
+                    // Nastavení hodnot do formulářových prvků
+                    document.getElementById('companyName').value = data.companyName || '';
+                    document.getElementById('companyAddress').value = data.companyAddress || '';
+                    document.getElementById('companyPhone').value = data.companyPhone || '';
+                    document.getElementById('companyWebsite').value = data.companyWebsite || '';
+
+                    document.getElementById('title').value = data.title || '';
+                    document.getElementById('service').value = data.service || '';
+                    document.getElementById('recipient').value = data.recipient || '';
+                    document.getElementById('sender').value = data.sender || '';
+                    document.getElementById('value').value = data.value || '';
+                    document.getElementById('validity').value = data.validity || '';
+                    document.getElementById('note').value = data.note || '';
+                    document.getElementById('additionalInfo').value = data.additionalInfo || '';
+                    document.getElementById('textColor').value = data.textColor || '#000000';
+                    document.getElementById('font').value = data.font || 'sans-serif';
+                    document.getElementById('template').value = data.template || 'dl';
+                    document.getElementById('titleFontSize').value = data.titleFontSize || '36';
+                    document.getElementById('mainFontSize').value = data.mainFontSize || '20';
+                    document.getElementById('smallFontSize').value = data.smallFontSize || '16';
+                    // Importujeme i nastavení zarovnání a posunu
+                    document.getElementById('titleAlign').value = data.titleAlign || 'center';
+                    document.getElementById('titleOffsetY').value = data.titleOffsetY || '0';
+                    document.getElementById('serviceAlign').value = data.serviceAlign || 'center';
+                    document.getElementById('serviceOffsetY').value = data.serviceOffsetY || '0';
+                    document.getElementById('recipientAlign').value = data.recipientAlign || 'center';
+                    document.getElementById('recipientOffsetY').value = data.recipientOffsetY || '0';
+                    document.getElementById('senderAlign').value = data.senderAlign || 'center';
+                    document.getElementById('senderOffsetY').value = data.senderOffsetY || '0';
+                    document.getElementById('valueAlign').value = data.valueAlign || 'center';
+                    document.getElementById('valueOffsetY').value = data.valueOffsetY || '0';
+                    document.getElementById('validityAlign').value = data.validityAlign || 'center';
+                    document.getElementById('validityOffsetY').value = data.validityOffsetY || '0';
+                    document.getElementById('noteAlign').value = data.noteAlign || 'center';
+                    document.getElementById('noteOffsetY').value = data.noteOffsetY || '0';
+                    document.getElementById('additionalInfoAlign').value = data.additionalInfoAlign || 'center';
+                    document.getElementById('additionalInfoOffsetY').value = data.additionalInfoOffsetY || '0';
+
+
+                    // Nastavení ID poukazu z importovaných dat
+                    if (data.voucherId) {
+                        voucherId = data.voucherId;
+                    } else {
+                        voucherId = Math.random().toString(36).substr(2, 8).toUpperCase(); // Generovat nové, pokud chybí
+                    }
+
+                    // Načtení loga z JSON dat (pokud existuje)
+                    if (data.logoData) {
+                        logoImage = new Image();
+                        logoImage.onload = drawVoucher;
+                        logoImage.onerror = () => {
+                            console.error("Chyba při načítání importovaného loga.");
+                            logoImage.src = createLogoBase64(100, 100); // Reset na placeholder
+                            drawVoucher();
+                        };
+                        logoImage.src = data.logoData;
+                    } else {
+                        logoImage.src = createLogoBase64(100, 100); // Reset na placeholder
+                    }
+
+                    // Načtení vlastního pozadí z JSON dat (pokud existuje)
+                    if (data.customBgData) {
+                        customBg = new Image();
+                        customBg.onload = drawVoucher;
+                        customBg.onerror = () => {
+                            console.error("Chyba při načítání importovaného vlastního pozadí.");
+                            customBg = null; // Reset na null
+                            drawVoucher();
+                        };
+                        customBg.src = data.customBgData;
+                    } else {
+                        customBg = null; // Reset na null
+                    }
+
+                    // Načtení QR kódu z JSON dat (pokud existuje)
+                    if (data.qrCodeData) {
+                        qrCodeImage = new Image();
+                        qrCodeImage.onload = drawVoucher;
+                        qrCodeImage.onerror = () => {
+                            console.error("Chyba při načítání importovaného QR kódu.");
+                            qrCodeImage = new Image(); // Reset na prázdný obrázek
+                            drawVoucher();
+                        };
+                        qrCodeImage.src = data.qrCodeData;
+                    } else {
+                        qrCodeImage = new Image(); // Reset na prázdný obrázek
+                    }
+
+                    // Načtení doplňkového obrázku z JSON dat (pokud existuje)
+                    if (data.extraImageData) {
+                        extraImage = new Image();
+                        extraImage.onload = drawVoucher;
+                        extraImage.onerror = () => {
+                            console.error("Chyba při načítání importovaného doplňkového obrázku.");
+                            extraImage = new Image(); // Reset na prázdný obrázek
+                            drawVoucher();
+                        };
+                        extraImage.src = data.extraImageData;
+                    } else {
+                        extraImage = new Image(); // Reset na prázdný obrázek
+                    }
+
+
+                    drawVoucher(); // Překreslení canvasu s novými daty
+                    showMessage("Data poukazu byla úspěšně importována.");
+                } catch (error) {
+                    console.error("Chyba při importu JSON dat:", error);
+                    showMessage("Chyba při načítání souboru JSON. Ujistěte se, že soubor je platný a obsahuje správná data.");
+                }
+            };
+            reader.readAsText(file); // Čtení souboru jako text
+        }
+
+        /**
+         * Funkce pro export aktuálních nastavení generátoru do JSON souboru.
+         */
+        function exportGeneratorSettings() {
+            try {
+                const settings = {
+                    companyName: document.getElementById('companyName').value,
+                    companyAddress: document.getElementById('companyAddress').value,
+                    companyPhone: document.getElementById('companyPhone').value,
+                    companyWebsite: document.getElementById('companyWebsite').value,
+                    title: document.getElementById('title').value,
+                    service: document.getElementById('service').value,
+                    recipient: document.getElementById('recipient').value,
+                    sender: document.getElementById('sender').value,
+                    value: document.getElementById('value').value,
+                    validity: document.getElementById('validity').value,
+                    note: document.getElementById('note').value,
+                    additionalInfo: document.getElementById('additionalInfo').value,
+                    textColor: document.getElementById('textColor').value,
+                    font: document.getElementById('font').value,
+                    template: document.getElementById('template').value,
+                    titleFontSize: document.getElementById('titleFontSize').value,
+                    mainFontSize: document.getElementById('mainFontSize').value,
+                    smallFontSize: document.getElementById('smallFontSize').value,
+                    // Exportujeme i nastavení zarovnání a posunu
+                    titleAlign: document.getElementById('titleAlign').value,
+                    titleOffsetY: document.getElementById('titleOffsetY').value,
+                    serviceAlign: document.getElementById('serviceAlign').value,
+                    serviceOffsetY: document.getElementById('serviceOffsetY').value,
+                    recipientAlign: document.getElementById('recipientAlign').value,
+                    recipientOffsetY: document.getElementById('recipientOffsetY').value,
+                    senderAlign: document.getElementById('senderAlign').value,
+                    senderOffsetY: document.getElementById('senderOffsetY').value,
+                    valueAlign: document.getElementById('valueAlign').value,
+                    valueOffsetY: document.getElementById('valueOffsetY').value,
+                    validityAlign: document.getElementById('validityAlign').value,
+                    validityOffsetY: document.getElementById('validityOffsetY').value,
+                    noteAlign: document.getElementById('noteAlign').value,
+                    noteOffsetY: document.getElementById('noteOffsetY').value,
+                    additionalInfoAlign: document.getElementById('additionalInfoAlign').value,
+                    additionalInfoOffsetY: document.getElementById('additionalInfoOffsetY').value,
+                };
+
+                const jsonSettings = JSON.stringify(settings, null, 2);
+                const blob = new Blob([jsonSettings], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'generator-nastaveni.json';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                showMessage("Nastavení generátoru bylo úspěšně exportováno jako JSON.");
+            } catch (error) {
+                console.error("Chyba při exportu nastavení generátoru:", error);
+                showMessage("Nastala chyba při exportu nastavení. Zkuste to prosím znovu.");
+            }
+        }
+
+        /**
+         * Funkce pro import nastavení generátoru z JSON souboru.
+         * @param {Event} event - Událost změny inputu souboru.
+         */
+        function importGeneratorSettings(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const settings = JSON.parse(e.target.result);
+
+                    // Set values to form elements
+                    document.getElementById('companyName').value = settings.companyName || '';
+                    document.getElementById('companyAddress').value = settings.companyAddress || '';
+                    document.getElementById('companyPhone').value = settings.companyPhone || '';
+                    document.getElementById('companyWebsite').value = settings.companyWebsite || '';
+
+                    document.getElementById('title').value = settings.title || '';
+                    document.getElementById('service').value = settings.service || '';
+                    document.getElementById('recipient').value = settings.recipient || '';
+                    document.getElementById('sender').value = settings.sender || '';
+                    document.getElementById('value').value = settings.value || '';
+                    document.getElementById('validity').value = settings.validity || '';
+                    document.getElementById('note').value = settings.note || '';
+                    document.getElementById('additionalInfo').value = settings.additionalInfo || '';
+                    document.getElementById('textColor').value = settings.textColor || '#000000';
+                    document.getElementById('font').value = settings.font || 'sans-serif';
+                    document.getElementById('template').value = settings.template || 'dl';
+                    document.getElementById('titleFontSize').value = settings.titleFontSize || '36';
+                    document.getElementById('mainFontSize').value = settings.mainFontSize || '20';
+                    document.getElementById('smallFontSize').value = settings.smallFontSize || '16';
+                    // Importujeme i nastavení zarovnání a posunu
+                    document.getElementById('titleAlign').value = settings.titleAlign || 'center';
+                    document.getElementById('titleOffsetY').value = settings.titleOffsetY || '0';
+                    document.getElementById('serviceAlign').value = settings.serviceAlign || 'center';
+                    document.getElementById('serviceOffsetY').value = settings.serviceOffsetY || '0';
+                    document.getElementById('recipientAlign').value = settings.recipientAlign || 'center';
+                    document.getElementById('recipientOffsetY').value = settings.recipientOffsetY || '0';
+                    document.getElementById('senderAlign').value = settings.senderAlign || 'center';
+                    document.getElementById('senderOffsetY').value = settings.senderOffsetY || '0';
+                    document.getElementById('valueAlign').value = settings.valueAlign || 'center';
+                    document.getElementById('valueOffsetY').value = settings.valueOffsetY || '0';
+                    document.getElementById('validityAlign').value = settings.validityAlign || 'center';
+                    document.getElementById('validityOffsetY').value = settings.validityOffsetY || '0';
+                    document.getElementById('noteAlign').value = settings.noteAlign || 'center';
+                    document.getElementById('noteOffsetY').value = settings.noteOffsetY || '0';
+                    document.getElementById('additionalInfoAlign').value = settings.additionalInfoAlign || 'center';
+                    document.getElementById('additionalInfoOffsetY').value = settings.additionalInfoOffsetY || '0';
+
+
+                    // Trigger redraw
+                    drawVoucher();
+                    showMessage("Nastavení generátoru bylo úspěšně importováno.");
+                } catch (error) {
+                    console.error("Chyba při importu nastavení generátoru:", error);
+                    showMessage("Chyba při načítání souboru JSON nastavení. Ujistěte se, že soubor je platný.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+
+        // Zajištění, že se canvas překreslí i při změně velikosti okna
+        window.addEventListener('resize', drawVoucher);
+
+        // Počáteční vykreslení poukazu při načtení stránky, pokud obrázky již nejsou načteny
+        // To je důležité pro případ, že se skript načte dříve než obrázky
+        if (logoImage.complete && gradientBg.complete && lakeBg.complete && qrCodeImage.complete && extraImage.complete) {
+            drawVoucher();
+        }
+    </script>
+</body>
+</html>

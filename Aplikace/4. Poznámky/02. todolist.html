@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>To-Do Listy</title>
+  <style>
+    body { font-family: sans-serif;
+padding: 2rem; background: #000; color: #fff; }
+    table { border-collapse: collapse; width: 100%; background: #111; color: #fff;
+}
+    th, td { border: 1px solid #555; padding: 0.5rem; text-align: center;
+}
+    th { background: #222; }
+    button { padding: 0.5rem; margin: 0.2rem; border: none;
+font-weight: bold; cursor: pointer; border-radius: 5px; }
+    .add { background-color: #4caf50; color: #fff;
+}
+    .edit { background-color: #2196f3; color: #fff; }
+    .remove { background-color: #f44336; color: #fff;
+}
+    .export { background-color: #ff9800; color: #000; }
+    .export-txt { background-color: #ffc107; color: #000;
+}
+    .form-section, .filter { margin: 1rem 0;
+}
+    input[type="text"], input[type="date"] { padding: 0.5rem; width: 200px; margin: 0.2rem;
+}
+    .hidden { display: none; }
+    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111;
+border: 2px solid #555; padding: 1rem; z-index: 1000; border-radius: 10px; display: none;
+}
+    .modal input, .modal select { margin: 0.2rem; width: 90%; }
+    .overlay { position: fixed;
+top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; z-index: 999;
+}
+    .completed { text-decoration: line-through; color: #888; } /* Styl pro splněné úkoly */
+    .todo-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem; }
+    .todo-item span { flex-grow: 1; text-align: left; }
+    .todo-item button { margin-left: 0.5rem; }
+
+    .back-button { margin-top: 1rem; background-color: #555; color: #fff; }
+  </style>
+</head>
+<body>
+  <h1 id="main-title">To-Do Listy</h1>
+
+  <div class="form-section" id="main-list-controls">
+    <button onclick="exportTodoLists()">Exportovat JSON</button>
+    <label>
+      Importovat JSON:
+      <input type="file" onchange="importTodoLists(event)" />
+    </label>
+  </div>
+
+  <div class="form-section" id="add-list-section">
+    <h3>Přidat nový To-Do List</h3>
+    <input type="text" id="listName" placeholder="Název listu (např. Práce, Osobní)" />
+    <button onclick="addTodoList()">Přidat list</button>
+  </div>
+
+  <table id="todoListTable">
+    <thead>
+      <tr>
+        <th>Název listu</th>
+        <th>Počet úkolů</th>
+        <th>Akce</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="todo-tasks-section" class="hidden">
+    <h2 id="current-list-title"></h2>
+    <div class="form-section">
+        <h3>Přidat úkol</h3>
+        <input type="text" id="taskText" placeholder="Popis úkolu" />
+        <input type="date" id="taskDueDate" />
+        <select id="taskPriority">
+            <option value="nízká">Nízká priorita</option>
+            <option value="střední">Střední priorita</option>
+            <option value="vysoká">Vysoká priorita</option>
+        </select>
+        <button onclick="addTask()">Přidat úkol</button>
+    </div>
+    <table id="tasksTable">
+        <thead>
+            <tr>
+                <th>Úkol</th>
+                <th>Termín</th>
+                <th>Priorita</th>
+                <th>Akce</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button class="back-button" onclick="goBackToMainLists()">Zpět na seznam listů</button>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="editModal"></div>
+
+  <script>
+    let todoLists = []; // Hlavní pole pro všechny to-do listy
+    let currentListIndex = -1; // Index aktuálně vybraného listu
+
+    function showModal(contentHTML) {
+      const overlay = document.getElementById('overlay');
+      const modal = document.getElementById('editModal');
+      modal.innerHTML = contentHTML;
+      overlay.style.display = 'block';
+      modal.style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    // --- Funkce pro správu HLAVNÍCH LISTŮ ---
+    function addTodoList() {
+      const listName = document.getElementById('listName').value.trim();
+      if (!listName) {
+        alert('Prosím, zadejte název To-Do listu.');
+        return;
+      }
+      todoLists.push({ name: listName, tasks: [] }); // Každý list má pole 'tasks'
+      document.getElementById('listName').value = '';
+      updateMainListTable();
+    }
+
+    function viewTodoList(index) {
+      currentListIndex = index;
+      document.getElementById('main-list-controls').classList.add('hidden');
+      document.getElementById('add-list-section').classList.add('hidden');
+      document.getElementById('todoListTable').classList.add('hidden');
+      document.getElementById('main-title').textContent = `To-Do List: ${todoLists[currentListIndex].name}`;
+
+      document.getElementById('todo-tasks-section').classList.remove('hidden');
+      document.getElementById('current-list-title').textContent = todoLists[currentListIndex].name;
+      updateTasksTable();
+    }
+
+    function goBackToMainLists() {
+      currentListIndex = -1;
+      document.getElementById('main-list-controls').classList.remove('hidden');
+      document.getElementById('add-list-section').classList.remove('hidden');
+      document.getElementById('todoListTable').classList.remove('hidden');
+      document.getElementById('main-title').textContent = 'To-Do Listy';
+
+      document.getElementById('todo-tasks-section').classList.add('hidden');
+      updateMainListTable();
+    }
+
+    function editTodoList(index) {
+        const list = todoLists[index];
+        showModal(`
+            <h3>Upravit název listu</h3>
+            <input type="text" id="editListName" value="${list.name}" /><br>
+            <button onclick="submitEditTodoList(${index})">Uložit</button>
+            <button onclick="closeModal()">Zrušit</button>
+        `);
+    }
+
+    function submitEditTodoList(index) {
+        todoLists[index].name = document.getElementById('editListName').value.trim();
+        closeModal();
+        updateMainListTable();
+    }
+
+    function deleteTodoList(index) {
+      if (confirm(`Opravdu chcete odstranit list "${todoLists[index].name}" a všechny jeho úkoly?`)) {
+        todoLists.splice(index, 1);
+        updateMainListTable();
+      }
+    }
+
+    function updateMainListTable() {
+      const tbody = document.querySelector('#todoListTable tbody');
+      tbody.innerHTML = '';
+
+      todoLists.forEach((list, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><button onclick="viewTodoList(${index})">${list.name}</button></td>
+          <td>${list.tasks.length}</td>
+          <td>
+            <button class="edit" onclick="editTodoList(${index})">Upravit</button>
+            <button class="remove" onclick="deleteTodoList(${index})">Odstranit</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // --- Funkce pro správu ÚKOLŮ v rámci VYBRANÉHO LISTU ---
+    function addTask() {
+      const taskText = document.getElementById('taskText').value.trim();
+      const taskDueDate = document.getElementById('taskDueDate').value;
+      const taskPriority = document.getElementById('taskPriority').value;
+
+      if (!taskText) {
+        alert('Prosím, zadejte popis úkolu.');
+        return;
+      }
+
+      todoLists[currentListIndex].tasks.push({
+        text: taskText,
+        dueDate: taskDueDate,
+        priority: taskPriority,
+        completed: false // Nový úkol je vždy nesplněný
+      });
+
+      document.getElementById('taskText').value = '';
+      document.getElementById('taskDueDate').value = ''; // Vyčistí datum
+      document.getElementById('taskPriority').value = 'nízká'; // Nastaví zpět na výchozí
+
+      updateTasksTable();
+      updateMainListTable(); // Aktualizuje i počty úkolů v hlavním přehledu
+    }
+
+    function toggleTaskCompletion(taskIndex) {
+      const task = todoLists[currentListIndex].tasks[taskIndex];
+      task.completed = !task.completed; // Přepne stav splnění
+      updateTasksTable();
+    }
+
+    function editTask(taskIndex) {
+      const task = todoLists[currentListIndex].tasks[taskIndex];
+      showModal(`
+        <h3>Upravit úkol</h3>
+        <input type="text" id="editTaskText" value="${task.text}" placeholder="Popis úkolu" /><br>
+        <input type="date" id="editTaskDueDate" value="${task.dueDate}" /><br>
+        <select id="editTaskPriority">
+            <option value="nízká" ${task.priority === 'nízká' ? 'selected' : ''}>Nízká priorita</option>
+            <option value="střední" ${task.priority === 'střední' ? 'selected' : ''}>Střední priorita</option>
+            <option value="vysoká" ${task.priority === 'vysoká' ? 'selected' : ''}>Vysoká priorita</option>
+        </select><br>
+        <button onclick="submitEditTask(${taskIndex})">Uložit</button>
+        <button onclick="closeModal()">Zrušit</button>
+      `);
+    }
+
+    function submitEditTask(taskIndex) {
+      const task = todoLists[currentListIndex].tasks[taskIndex];
+      task.text = document.getElementById('editTaskText').value.trim();
+      task.dueDate = document.getElementById('editTaskDueDate').value;
+      task.priority = document.getElementById('editTaskPriority').value;
+      closeModal();
+      updateTasksTable();
+    }
+
+    function deleteTask(taskIndex) {
+      if (confirm('Opravdu chcete odstranit tento úkol?')) {
+        todoLists[currentListIndex].tasks.splice(taskIndex, 1);
+        updateTasksTable();
+        updateMainListTable(); // Aktualizuje i počty úkolů v hlavním přehledu
+      }
+    }
+
+    function updateTasksTable() {
+      const tbody = document.querySelector('#tasksTable tbody');
+      tbody.innerHTML = '';
+
+      if (currentListIndex === -1 || !todoLists[currentListIndex]) return; // Pokud není vybrán žádný list
+
+      const tasks = todoLists[currentListIndex].tasks;
+
+      tasks.forEach((task, index) => {
+        const row = document.createElement('tr');
+        const completedClass = task.completed ? 'completed' : '';
+        row.innerHTML = `
+          <td class="${completedClass}">
+            <input type="checkbox" ${task.completed ? 'checked' : ''} onclick="toggleTaskCompletion(${index})">
+            <span>${task.text}</span>
+          </td>
+          <td class="${completedClass}">${task.dueDate}</td>
+          <td class="${completedClass}">${task.priority}</td>
+          <td>
+            <button class="edit" onclick="editTask(${index})">Upravit</button>
+            <button class="remove" onclick="deleteTask(${index})">Smazat</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // --- Funkce pro export/import VŠECH To-Do listů ---
+    function exportTodoLists() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(todoLists));
+      const dl = document.createElement('a');
+      dl.setAttribute("href", dataStr);
+      dl.setAttribute("download", "todolist.json");
+      dl.click();
+    }
+
+    function importTodoLists(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          // Kontrola, zda importovaná data vypadají jako pole listů s úkoly
+          if (Array.isArray(importedData) && importedData.every(list => 'name' in list && Array.isArray(list.tasks))) {
+            todoLists = importedData;
+            // Zajistíme, že úkoly mají 'completed' stav, pokud chybí
+            todoLists.forEach(list => {
+                list.tasks.forEach(task => {
+                    if (typeof task.completed !== 'boolean') task.completed = false;
+                    if (typeof task.dueDate !== 'string') task.dueDate = ''; // Pro jistotu, pokud chybí
+                    if (typeof task.priority !== 'string') task.priority = 'nízká'; // Pro jistotu
+                });
+            });
+            updateMainListTable();
+            alert('To-Do listy byly úspěšně importovány!');
+          } else {
+            alert('Chyba: Importovaný soubor nemá očekávaný formát pro To-Do listy.');
+          }
+        } catch (e) {
+          alert('Chyba při čtení JSON souboru: ' + e.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Počáteční zobrazení při načtení stránky
+    updateMainListTable();
+  </script>
+</body>
+</html>

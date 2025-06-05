@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tabulky - Historie masáží</title>
+  <style>
+    body { font-family: sans-serif;
+padding: 2rem; background: #000; color: #fff; }
+    table { border-collapse: collapse; width: 100%; background: #111; color: #fff;
+}
+    th, td { border: 1px solid #555; padding: 0.5rem; text-align: center;
+}
+    th { background: #222; }
+    button { padding: 0.5rem; margin: 0.2rem; border: none;
+font-weight: bold; cursor: pointer; border-radius: 5px; }
+    .add { background-color: #4caf50; color: #fff;
+}
+    .edit { background-color: #2196f3; color: #fff; }
+    .remove { background-color: #f44336; color: #fff;
+}
+    .export { background-color: #ff9800; color: #000; }
+    .export-txt { background-color: #ffc107; color: #000;
+}
+    .form-section, .filter { margin: 1rem 0;
+}
+    input[type="text"], input[type="tel"], input[type="number"] { padding: 0.5rem; width: 200px; margin: 0.2rem;
+}
+    .hidden { display: none; }
+    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111;
+border: 2px solid #555; padding: 1rem; z-index: 1000; border-radius: 10px; display: none;
+}
+    .modal input { margin: 0.2rem; width: 90%; }
+    .overlay { position: fixed;
+top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; z-index: 999;
+}
+  </style>
+</head>
+<body>
+  <h1>Historie masáží</h1>
+
+  <div class="form-section">
+    <button onclick="exportAllRecords()">Exportovat JSON</button>
+    <label>
+      Importovat JSON:
+      <input type="file" onchange="importRecords(event)" />
+    </label>
+  </div>
+
+  <div class="form-section">
+    <h3>Přidat záznam</h3>
+    <input type="text" id="recordDate" placeholder="Datum (např. 15.05.2025)" />
+    <input type="text" id="recordTime" placeholder="Čas (např. 08:00 - 09:00)" />
+    <input type="text" id="recordId" placeholder="ID (např. JS000000000001)" />
+    <input type="text" id="recordClient" placeholder="Klient (např. Šimek Jan)" />
+    <input type="text" id="recordMethod" placeholder="Metoda (např. K1)" />
+    <input type="text" id="recordPayment" placeholder="Platba (např. H)" />
+    <input type="number" id="recordAmount" placeholder="Částka (např. 500)" />
+    <button onclick="addRecord()">Přidat záznam</button>
+  </div>
+
+  <table id="massageHistoryTable">
+    <thead>
+      <tr>
+        <th>Datum</th>
+        <th>Čas</th>
+        <th>ID</th>
+        <th>Klient</th>
+        <th>Metoda</th>
+        <th>Platba</th>
+        <th>Částka</th>
+        <th>Akce</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="editModal"></div>
+
+  <script>
+    let massageRecords = [];
+
+    function showModal(contentHTML) {
+      const overlay = document.getElementById('overlay');
+      const modal = document.getElementById('editModal');
+      modal.innerHTML = contentHTML;
+      overlay.style.display = 'block';
+      modal.style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function addRecord() {
+      const date = document.getElementById('recordDate').value;
+      const time = document.getElementById('recordTime').value;
+      const id = document.getElementById('recordId').value;
+      const client = document.getElementById('recordClient').value;
+      const method = document.getElementById('recordMethod').value;
+      const payment = document.getElementById('recordPayment').value;
+      const amount = parseFloat(document.getElementById('recordAmount').value);
+
+      if (!date || !time || !id || !client || !method || !payment || isNaN(amount)) {
+        alert('Prosím, vyplňte všechna pole.');
+        return;
+      }
+
+      massageRecords.push({
+        date: date,
+        time: time,
+        id: id,
+        client: client,
+        method: method,
+        payment: payment,
+        amount: amount
+      });
+
+      document.getElementById('recordDate').value = '';
+      document.getElementById('recordTime').value = '';
+      document.getElementById('recordId').value = '';
+      document.getElementById('recordClient').value = '';
+      document.getElementById('recordMethod').value = '';
+      document.getElementById('recordPayment').value = '';
+      document.getElementById('recordAmount').value = '';
+
+      updateTable();
+    }
+
+    function editRecord(index) {
+      const record = massageRecords[index];
+      showModal(`
+        <h3>Upravit záznam</h3>
+        <input type="text" id="editDate" value="${record.date}" placeholder="Datum" /><br>
+        <input type="text" id="editTime" value="${record.time}" placeholder="Čas" /><br>
+        <input type="text" id="editId" value="${record.id}" placeholder="ID" /><br>
+        <input type="text" id="editClient" value="${record.client}" placeholder="Klient" /><br>
+        <input type="text" id="editMethod" value="${record.method}" placeholder="Metoda" /><br>
+        <input type="text" id="editPayment" value="${record.payment}" placeholder="Platba" /><br>
+        <input type="number" id="editAmount" value="${record.amount}" placeholder="Částka" /><br>
+        <button onclick="submitEditRecord(${index})">Uložit</button>
+        <button onclick="closeModal()">Zrušit</button>
+      `);
+    }
+
+    function submitEditRecord(index) {
+      const record = massageRecords[index];
+      record.date = document.getElementById('editDate').value;
+      record.time = document.getElementById('editTime').value;
+      record.id = document.getElementById('editId').value;
+      record.client = document.getElementById('editClient').value;
+      record.method = document.getElementById('editMethod').value;
+      record.payment = document.getElementById('editPayment').value;
+
+      const newAmount = parseFloat(document.getElementById('editAmount').value);
+      if (!isNaN(newAmount)) {
+        record.amount = newAmount;
+      } else {
+        alert('Prosím, zadejte platné číslo pro částku.');
+        return;
+      }
+
+      closeModal();
+      updateTable();
+    }
+
+    function deleteRecord(index) {
+      if (confirm('Opravdu chcete odstranit tento záznam?')) {
+        massageRecords.splice(index, 1);
+        updateTable();
+      }
+    }
+
+    function updateTable() {
+      const tbody = document.querySelector('#massageHistoryTable tbody');
+      tbody.innerHTML = '';
+
+      massageRecords.forEach((record, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${record.date}</td>
+          <td>${record.time}</td>
+          <td>${record.id}</td>
+          <td>${record.client}</td>
+          <td>${record.method}</td>
+          <td>${record.payment}</td>
+          <td>${record.amount} Kč</td>
+          <td>
+            <button class="edit" onclick="editRecord(${index})">Upravit</button>
+            <button class="remove" onclick="deleteRecord(${index})">Odstranit</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function exportAllRecords() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(massageRecords));
+      const dl = document.createElement('a');
+      dl.setAttribute("href", dataStr);
+      dl.setAttribute("download", "historie_masazi.json");
+      dl.click();
+    }
+
+    function importRecords(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (Array.isArray(importedData) && importedData.every(item => 'date' in item && 'time' in item && 'id' in item && 'client' in item && 'method' in item && 'payment' in item && 'amount' in item)) {
+            massageRecords = importedData;
+            updateTable();
+            alert('Data byla úspěšně importována!');
+          } else {
+            alert('Chyba: Importovaný soubor nemá očekávaný formát pro historii masáží.');
+          }
+        } catch (e) {
+          alert('Chyba při čtení JSON souboru: ' + e.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    updateTable(); // Aby se tabulka zobrazila i prázdná při prvním spuštění
+  </script>
+</body>
+</html>

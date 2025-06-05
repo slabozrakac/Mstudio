@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Účetnictví</title>
+  <style>
+    body { font-family: sans-serif;
+    padding: 2rem; background: #000; color: #fff; }
+    table { border-collapse: collapse; width: 100%; background: #111; color: #fff; margin-bottom: 2rem;
+    }
+    th, td { border: 1px solid #555; padding: 0.5rem; text-align: center;
+    }
+    th { background: #222; }
+    button { padding: 0.5rem; margin: 0.2rem; border: none;
+    font-weight: bold; cursor: pointer; border-radius: 5px; }
+    .add { background-color: #4caf50; color: #fff;
+    }
+    .edit { background-color: #2196f3; color: #fff; }
+    .remove { background-color: #f44336; color: #fff;
+    }
+    .export { background-color: #ff9800; color: #000; }
+    .export-txt { background-color: #ffc107; color: #000; }
+    .form-section, .filter { margin: 1rem 0;
+    }
+    input[type="text"], input[type="number"], input[type="date"], select { padding: 0.5rem; width: 200px; margin: 0.2rem;
+    color: #000; /* Barva textu pro inputy a selecty */
+    }
+    .modal input, .modal select { color: #000; }
+    .hidden { display: none; }
+    .summary-section { margin-top: 2rem; border: 1px solid #333; padding: 1rem; border-radius: 8px; }
+    .summary-section h3 { margin-top: 0; color: #00bcd4; }
+    .summary-table { width: 100%; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Účetnictví</h1>
+
+  <div class="form-section">
+    <button onclick="exportAllAccountingData()">Exportovat JSON</button>
+    <label>
+      Importovat JSON:
+      <input type="file" onchange="importAccountingData(event)" />
+    </label>
+  </div>
+
+  <div class="form-section">
+    <h3>Přidat transakci</h3>
+    <label for="transactionDate">Datum:</label>
+    <input type="date" id="transactionDate" />
+    <select id="transactionType">
+      <option value="income">Příjem</option>
+      <option value="expense">Výdaj</option>
+    </select>
+    <input type="number" id="transactionAmount" placeholder="Částka (Kč)" min="0" />
+    <input type="text" id="transactionDescription" placeholder="Popis transakce" />
+    <button onclick="addTransaction()">Přidat transakci</button>
+  </div>
+
+  <div class="filter">
+    <input type="text" id="filterInput" placeholder="Filtruj transakce (popis, částka)..." oninput="updateTable()" />
+    <button onclick="clearFilter()">Zrušit filtr</button>
+  </div>
+
+  <h2>Přehled transakcí</h2>
+  <table id="transactionTable">
+    <thead>
+      <tr>
+        <th>Datum</th>
+        <th>Typ</th>
+        <th>Popis</th>
+        <th>Částka</th>
+        <th>Akce</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="summary-section">
+    <h3>Měsíční přehledy</h3>
+    <table class="summary-table" id="monthlySummaryTable">
+      <thead>
+        <tr>
+          <th>Měsíc/Rok</th>
+          <th>Příjem</th>
+          <th>Výdaj</th>
+          <th>Tržba</th>
+        </tr>
+      </thead>
+      <tbody>
+        </tbody>
+    </table>
+  </div>
+
+  <div class="summary-section">
+    <h3>Roční přehledy</h3>
+    <table class="summary-table" id="annualSummaryTable">
+      <thead>
+        <tr>
+          <th>Rok</th>
+          <th>Příjem</th>
+          <th>Výdaj</th>
+          <th>Tržba</th>
+          <th>Počet masáží</th>
+          <th>Akce</th>
+        </tr>
+      </thead>
+      <tbody>
+        </tbody>
+    </table>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="editModal"></div>
+
+  <script>
+    // Globální úložiště dat
+    let accountingData = {
+      transactions: [],
+      annualMassages: {} // Ukládáme zde roční počty masáží
+    };
+
+    // Pomocná funkce pro formátování data (DD.MM.YYYY na YYYY-MM-DD pro input type="date")
+    function formatDateForInput(dateString) {
+        if (!dateString) return '';
+        const parts = dateString.split('.');
+        if (parts.length === 3) {
+            return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
+        return dateString; 
+    }
+
+    // Pomocná funkce pro parsování data (YYYY-MM-DD z input type="date" na DD.MM.YYYY pro uložení)
+    function parseDateFromInput(dateString) {
+        if (!dateString) return '';
+        const parts = dateString.split('-'); // Předpokládá YYYY-MM-DD
+        if (parts.length === 3) {
+            return `${parts[2]}.${parts[1]}.${parts[0]}`;
+        }
+        return dateString;
+    }
+
+    // Pomocná funkce pro získání "YYYY-MM" z data DD.MM.YYYY
+    function getYearMonth(dateString) {
+        if (!dateString) return '';
+        const parts = dateString.split('.');
+        if (parts.length === 3) {
+            return `${parts[2]}-${parts[1].padStart(2, '0')}`;
+        }
+        return '';
+    }
+
+    // Pomocná funkce pro získání "YYYY" z data DD.MM.YYYY
+    function getYear(dateString) {
+        if (!dateString) return '';
+        const parts = dateString.split('.');
+        if (parts.length === 3) {
+            return parts[2];
+        }
+        return '';
+    }
+
+    function showModal(contentHTML) {
+      const overlay = document.getElementById('overlay');
+      const modal = document.getElementById('editModal');
+      modal.innerHTML = contentHTML;
+      overlay.style.display = 'block';
+      modal.style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function addTransaction() {
+      const dateInput = document.getElementById('transactionDate').value;
+      const date = parseDateFromInput(dateInput); // Převedeme na DD.MM.YYYY pro uložení
+      const type = document.getElementById('transactionType').value;
+      const amount = parseFloat(document.getElementById('transactionAmount').value);
+      const description = document.getElementById('transactionDescription').value;
+
+      if (!date || !type || isNaN(amount) || amount <= 0 || !description) {
+        alert('Vyplňte prosím všechna pole transakce (Datum, Typ, Částka, Popis).');
+        return;
+      }
+
+      const newTransaction = {
+        id: Date.now().toString(), // Jednoduché unikátní ID
+        date,
+        type,
+        amount,
+        description
+      };
+
+      accountingData.transactions.push(newTransaction);
+
+      // Vyčistit formulář
+      document.getElementById('transactionDate').value = '';
+      document.getElementById('transactionType').value = 'income';
+      document.getElementById('transactionAmount').value = '';
+      document.getElementById('transactionDescription').value = '';
+      
+      updateTable();
+    }
+
+    function editTransaction(index) {
+      const t = accountingData.transactions[index];
+      const dateForInput = formatDateForInput(t.date); // Převedeme na YYYY-MM-DD pro input
+      
+      showModal(`
+        <h3>Upravit transakci</h3>
+        <label for="editTransactionDate">Datum:</label>
+        <input type="date" id="editTransactionDate" value="${dateForInput}" /><br>
+        <select id="editTransactionType">
+          <option value="income" ${t.type === 'income' ? 'selected' : ''}>Příjem</option>
+          <option value="expense" ${t.type === 'expense' ? 'selected' : ''}>Výdaj</option>
+        </select><br>
+        <input type="number" id="editTransactionAmount" value="${t.amount}" placeholder="Částka (Kč)" /><br>
+        <input type="text" id="editTransactionDescription" value="${t.description}" placeholder="Popis transakce" /><br>
+        <button onclick="submitEditTransaction(${index})">Uložit</button>
+        <button onclick="closeModal()">Zrušit</button>
+      `);
+    }
+
+    function submitEditTransaction(index) {
+      const t = accountingData.transactions[index];
+      t.date = parseDateFromInput(document.getElementById('editTransactionDate').value);
+      t.type = document.getElementById('editTransactionType').value;
+      t.amount = parseFloat(document.getElementById('editTransactionAmount').value);
+      t.description = document.getElementById('editTransactionDescription').value;
+
+      closeModal();
+      updateTable();
+    }
+
+    function deleteTransaction(index) {
+      if (confirm('Opravdu chcete smazat tuto transakci?')) {
+        accountingData.transactions.splice(index, 1);
+        updateTable();
+      }
+    }
+
+    function calculateMonthlySummary(year, month) {
+        let income = 0;
+        let expenses = 0;
+        const targetYearMonth = `${year}-${month.padStart(2, '0')}`;
+
+        accountingData.transactions.forEach(t => {
+            if (getYearMonth(t.date) === targetYearMonth) {
+                if (t.type === 'income') {
+                    income += t.amount;
+                } else if (t.type === 'expense') {
+                    expenses += t.amount;
+                }
+            }
+        });
+        return { income, expenses, profit: income - expenses };
+    }
+
+    function calculateAnnualSummary(year) {
+        let income = 0;
+        let expenses = 0;
+
+        accountingData.transactions.forEach(t => {
+            if (getYear(t.date) === year.toString()) { // Porovnávat jako string
+                if (t.type === 'income') {
+                    income += t.amount;
+                } else if (t.type === 'expense') {
+                    expenses += t.amount;
+                }
+            }
+        });
+        return { income, expenses, profit: income - expenses };
+    }
+
+    function displayMonthlySummaries() {
+        const tbody = document.querySelector('#monthlySummaryTable tbody');
+        tbody.innerHTML = '';
+        
+        const monthlyData = {}; // { 'YYYY-MM': { income, expenses, profit } }
+
+        accountingData.transactions.forEach(t => {
+            const ym = getYearMonth(t.date);
+            if (!monthlyData[ym]) {
+                monthlyData[ym] = { income: 0, expenses: 0 };
+            }
+            if (t.type === 'income') {
+                monthlyData[ym].income += t.amount;
+            } else {
+                monthlyData[ym].expenses += t.amount;
+            }
+        });
+
+        // Seřadit měsíce chronologicky
+        const sortedMonths = Object.keys(monthlyData).sort();
+
+        sortedMonths.forEach(ym => {
+            const data = monthlyData[ym];
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${ym}</td>
+                <td>${data.income.toLocaleString('cs-CZ')} Kč</td>
+                <td>${data.expenses.toLocaleString('cs-CZ')} Kč</td>
+                <td>${(data.income - data.expenses).toLocaleString('cs-CZ')} Kč</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function displayAnnualSummaries() {
+        const tbody = document.querySelector('#annualSummaryTable tbody');
+        tbody.innerHTML = '';
+
+        const annualData = {}; // { 'YYYY': { income, expenses, profit } }
+        const years = new Set(); // Pro unikátní roky
+
+        accountingData.transactions.forEach(t => {
+            const year = getYear(t.date);
+            years.add(year);
+            if (!annualData[year]) {
+                annualData[year] = { income: 0, expenses: 0 };
+            }
+            if (t.type === 'income') {
+                annualData[year].income += t.amount;
+            } else {
+                annualData[year].expenses += t.amount;
+            }
+        });
+
+        const sortedYears = Array.from(years).sort();
+
+        sortedYears.forEach(year => {
+            const data = annualData[year];
+            const massagesCount = accountingData.annualMassages[year] || 0; // Načte uložený počet masáží
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${year}</td>
+                <td>${data.income.toLocaleString('cs-CZ')} Kč</td>
+                <td>${data.expenses.toLocaleString('cs-CZ')} Kč</td>
+                <td>${(data.income - data.expenses).toLocaleString('cs-CZ')} Kč</td>
+                <td>${massagesCount}</td>
+                <td>
+                    <button class="edit" onclick="editAnnualMassages(${year})">Upravit počet masáží</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function editAnnualMassages(year) {
+        const currentCount = accountingData.annualMassages[year] || 0;
+        showModal(`
+            <h3>Upravit počet masáží pro rok ${year}</h3>
+            <input type="number" id="editMassagesCount" value="${currentCount}" min="0" /><br>
+            <button onclick="submitEditAnnualMassages(${year})">Uložit</button>
+            <button onclick="closeModal()">Zrušit</button>
+        `);
+    }
+
+    function submitEditAnnualMassages(year) {
+        const newCount = parseInt(document.getElementById('editMassagesCount').value);
+        if (!isNaN(newCount) && newCount >= 0) {
+            accountingData.annualMassages[year] = newCount;
+        } else {
+            alert('Zadejte prosím platné číslo.');
+        }
+        closeModal();
+        updateTable();
+    }
+
+
+    function updateTable() {
+      const tbody = document.querySelector('#transactionTable tbody');
+      tbody.innerHTML = '';
+      const filter = document.getElementById('filterInput').value.toLowerCase();
+      
+      accountingData.transactions.forEach((t, index) => {
+        // Filtr se aplikuje na popis a částku
+        if (t.description.toLowerCase().includes(filter) || t.amount.toString().includes(filter)) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${t.date}</td>
+            <td>${t.type === 'income' ? 'Příjem' : 'Výdaj'}</td>
+            <td>${t.description}</td>
+            <td>${t.amount.toLocaleString('cs-CZ')} Kč</td>
+            <td>
+              <button class="edit" onclick="editTransaction(${index})">Upravit</button>
+              <button class="remove" onclick="deleteTransaction(${index})">Odstranit</button>
+              <button class="export-txt" onclick="exportTransactionToTxt(${index})">Export TXT</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        }
+      });
+      
+      // Po aktualizaci tabulky transakcí aktualizujeme i souhrny
+      displayMonthlySummaries();
+      displayAnnualSummaries();
+    }
+
+    function clearFilter() {
+      document.getElementById('filterInput').value = '';
+      updateTable();
+    }
+
+    function exportAllAccountingData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(accountingData));
+      const dl = document.createElement('a');
+      dl.setAttribute("href", dataStr);
+      dl.setAttribute("download", "ucetnictvi.json");
+      dl.click();
+    }
+
+    function importAccountingData(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (importedData && importedData.transactions && importedData.annualMassages) {
+            accountingData = importedData;
+            updateTable();
+            alert('Data byla úspěšně importována!');
+          } else {
+            alert('Chybný formát souboru JSON pro účetnictví.');
+          }
+        } catch (error) {
+          alert('Chyba při parsování JSON souboru: ' + error.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function exportTransactionToTxt(index) {
+      const t = accountingData.transactions[index];
+      let textContent = `--- Detail transakce ---\n`;
+      textContent += `Datum: ${t.date}\n`;
+      textContent += `Typ: ${t.type === 'income' ? 'Příjem' : 'Výdaj'}\n`;
+      textContent += `Popis: ${t.description}\n`;
+      textContent += `Částka: ${t.amount.toLocaleString('cs-CZ')} Kč\n`;
+
+      const dataStr = "data:text/plain;charset=utf-8," + encodeURIComponent(textContent);
+      const dl = document.createElement('a');
+      dl.setAttribute("href", dataStr);
+      dl.setAttribute("download", `transakce_${t.date.replace(/\./g, '_')}_${t.id}.txt`);
+      dl.click();
+    }
+    
+    // Načtení dat při prvním spuštění
+    updateTable(); 
+  </script>
+</body>
+</html>

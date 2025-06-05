@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Správa dárkových poukazů</title>
+  <style>
+    body { font-family: sans-serif;
+    padding: 2rem; background: #000; color: #fff; }
+    table { border-collapse: collapse; width: 100%; background: #111; color: #fff;
+    }
+    th, td { border: 1px solid #555; padding: 0.5rem; text-align: center;
+    }
+    th { background: #222; }
+    button { padding: 0.5rem; margin: 0.2rem; border: none;
+    font-weight: bold; cursor: pointer; border-radius: 5px; }
+    .add { background-color: #4caf50; color: #fff;
+    }
+    .edit { background-color: #2196f3; color: #fff; }
+    .remove { background-color: #f44336; color: #fff;
+    }
+    .export { background-color: #ff9800; color: #000; }
+    .export-txt { background-color: #ffc107; color: #000; }
+    .form-section, .filter { margin: 1rem 0;
+    }
+    input[type="text"], input[type="tel"], input[type="number"], input[type="date"] { padding: 0.5rem; width: 200px; margin: 0.2rem;
+    }
+    .hidden { display: none; }
+    .voucher-details { background-color: #222; margin-top: 0.5rem; padding: 0.5rem;
+    border-radius: 5px; }
+    .detail-entry { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;
+    flex-wrap: wrap; /* Pro lepší zobrazení na malých obrazovkách */
+    }
+    .detail-entry span { flex-grow: 1; margin-right: 0.5rem; }
+    .detail-entry button { margin-left: 0.5rem;
+    }
+    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111;
+    border: 2px solid #555; padding: 1rem; z-index: 1000; border-radius: 10px; display: none;
+    }
+    .modal input { margin: 0.2rem; width: 90%; }
+    .overlay { position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <h1>Správa dárkových poukazů</h1>
+
+  <div class="form-section">
+    <button onclick="exportAllVoucherPurchases()">Exportovat JSON</button>
+    <label>
+      Importovat JSON:
+      <input type="file" onchange="importVoucherPurchases(event)" />
+    </label>
+  </div>
+
+  <div class="form-section">
+    <h3>Přidat nákup poukazů</h3>
+    <input type="text" id="purchaseId" placeholder="ID nákupu (např. PUK001)" />
+    <input type="text" id="purchasingClientName" placeholder="Jméno kupujícího klienta" />
+    <input type="text" id="overallPaymentType" placeholder="Typ platby (H/K/V)" />
+    <button onclick="addVoucherPurchase()">Přidat nákup</button>
+  </div>
+    
+  <div class="modal" id="addVoucherModal">
+    <h3>Přidat nový poukaz k nákupu</h3>
+    <input type="text" id="newVoucherType" placeholder="Typ poukazu (např. V1)" /><br>
+    <label for="newVoucherIssueDate">Datum vystavení:</label>
+    <input type="date" id="newVoucherIssueDate" /><br>
+    <input type="number" id="newVoucherValue" placeholder="Hodnota poukazu (např. 500)" min="0" /><br>
+    <button id="submitAddIndividualVoucher" onclick="">Uložit</button>
+    <button onclick="closeModal('addVoucherModal')">Zrušit</button>
+  </div>
+
+
+  <div class="filter">
+    <input type="text" id="filterInput" placeholder="Filtruj nákupy..." oninput="updateTable()" />
+    <button onclick="clearFilter()">Zrušit filtr</button>
+  </div>
+
+  <table id="voucherTable">
+    <thead>
+      <tr>
+        <th>ID Nákupu</th>
+        <th>Klient (Kupující)</th>
+        <th>Počet Poukazů</th>
+        <th>Celková Hodnota</th>
+        <th>Typ Platby</th>
+        <th>Akce</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="editModal"></div>
+
+  <script>
+    let voucherPurchases = [];
+
+    // Pomocná funkce pro formátování data (DD.MM.YYYY na YYYY-MM-DD pro input type="date")
+    function formatDateForInput(dateString) {
+        if (!dateString) return '';
+        const parts = dateString.split('.');
+        if (parts.length === 3) {
+            return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
+        return dateString; 
+    }
+
+    // Pomocná funkce pro parsování data (YYYY-MM-DD z input type="date" na DD.MM.YYYY pro uložení)
+    function parseDateFromInput(dateString) {
+        if (!dateString) return '';
+        const parts = dateString.split('-'); // Předpokládá YYYY-MM-DD
+        if (parts.length === 3) {
+            return `${parts[2]}.${parts[1]}.${parts[0]}`;
+        }
+        return dateString;
+    }
+
+    function calculateExpiryDate(issueDateStr) {
+        if (!issueDateStr) return '';
+        const parts = issueDateStr.split('.');
+        if (parts.length !== 3) return ''; 
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1; 
+        const year = parseInt(parts[2]);
+        
+        const date = new Date(year, month, day);
+        date.setFullYear(date.getFullYear() + 1); 
+        
+        const expDay = String(date.getDate()).padStart(2, '0');
+        const expMonth = String(date.getMonth() + 1).padStart(2, '0');
+        const expYear = date.getFullYear();
+        return `${expDay}.${expMonth}.${expYear}`;
+    }
+
+    function showModal(modalId, contentHTML = '') {
+      const overlay = document.getElementById('overlay');
+      const modal = document.getElementById(modalId);
+      if (contentHTML) {
+        modal.innerHTML = contentHTML;
+      }
+      overlay.style.display = 'block';
+      modal.style.display = 'block';
+    }
+
+    function closeModal(modalId = 'editModal') {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    function addVoucherPurchase() {
+      const purchaseId = document.getElementById('purchaseId').value;
+      const purchasingClientName = document.getElementById('purchasingClientName').value;
+      const overallPaymentType = document.getElementById('overallPaymentType').value;
+
+      if (!purchaseId || !purchasingClientName) return;
+
+      voucherPurchases.push({ 
+        purchaseId, 
+        purchasingClientName, 
+        totalVouchersBought: 0, // Bude se aktualizovat při přidání/odebrání jednotlivých poukazů
+        totalAmountPaid: 0,   // Bude se aktualizovat při přidání/odebrání jednotlivých poukazů
+        overallPaymentType, 
+        individualVouchers: [] 
+      });
+
+      // Vyčištění formuláře
+      document.getElementById('purchaseId').value = '';
+      document.getElementById('purchasingClientName').value = '';
+      document.getElementById('overallPaymentType').value = '';
+      
+      updateTable();
+    }
+
+    // Funkce pro zobrazení modalu pro přidání individuálního poukazu
+    function showAddIndividualVoucherModal(purchaseIndex) {
+        const submitButton = document.getElementById('submitAddIndividualVoucher');
+        submitButton.onclick = () => addIndividualVoucher(purchaseIndex);
+        
+        // Vyčistit předchozí hodnoty
+        document.getElementById('newVoucherType').value = '';
+        document.getElementById('newVoucherIssueDate').value = '';
+        document.getElementById('newVoucherValue').value = '';
+
+        showModal('addVoucherModal');
+    }
+
+    // Funkce pro přidání individuálního poukazu k existujícímu nákupu
+    function addIndividualVoucher(purchaseIndex) {
+        const voucherType = document.getElementById('newVoucherType').value;
+        const issueDate = parseDateFromInput(document.getElementById('newVoucherIssueDate').value);
+        const voucherValue = parseFloat(document.getElementById('newVoucherValue').value);
+
+        if (!voucherType || !issueDate || isNaN(voucherValue) || voucherValue < 0) {
+            alert('Vyplňte prosím všechna pole pro nový poukaz: Typ, Datum vystavení a Hodnotu.');
+            return;
+        }
+
+        const purchase = voucherPurchases[purchaseIndex];
+        const newVoucher = {
+            voucherId: `${purchase.purchaseId}_${purchase.individualVouchers.length + 1}`,
+            voucherType,
+            issueDate,
+            redeemedBy: '',
+            redemptionDates: '',
+            voucherValue
+        };
+
+        purchase.individualVouchers.push(newVoucher);
+        purchase.totalVouchersBought++;
+        purchase.totalAmountPaid += voucherValue;
+
+        closeModal('addVoucherModal');
+        updateTable();
+    }
+
+
+    function editVoucherPurchase(index) {
+      const p = voucherPurchases[index];
+      showModal('editModal', `
+        <h3>Upravit nákup poukazů</h3>
+        <input type="text" id="editPurchaseId" value="${p.purchaseId}" /><br>
+        <input type="text" id="editPurchasingClientName" value="${p.purchasingClientName}" /><br>
+        <input type="text" id="editOverallPaymentType" value="${p.overallPaymentType}" /><br>
+        <p><i>Počet poukazů a celková hodnota se automaticky aktualizují úpravou jednotlivých poukazů.</i></p>
+        <button onclick="submitEditVoucherPurchase(${index})">Uložit</button>
+        <button onclick="closeModal()">Zrušit</button>
+      `);
+    }
+
+    function submitEditVoucherPurchase(index) {
+      voucherPurchases[index].purchaseId = document.getElementById('editPurchaseId').value;
+      voucherPurchases[index].purchasingClientName = document.getElementById('editPurchasingClientName').value;
+      voucherPurchases[index].overallPaymentType = document.getElementById('editOverallPaymentType').value;
+      closeModal();
+      updateTable();
+    }
+
+    function editIndividualVoucher(purchaseIndex, voucherIndex) {
+      const v = voucherPurchases[purchaseIndex].individualVouchers[voucherIndex];
+      const issueDateForInput = formatDateForInput(v.issueDate);
+      
+      showModal('editModal', `
+        <h3>Upravit poukaz (ID: ${v.voucherId || 'N/A'})</h3>
+        <input type="text" id="editVoucherType" placeholder="Typ poukazu" value="${v.voucherType}" /><br>
+        <label for="editIssueDate">Datum vystavení:</label>
+        <input type="date" id="editIssueDate" value="${issueDateForInput}" /><br>
+        <input type="text" id="editRedeemedBy" placeholder="Kdo poukaz využil" value="${v.redeemedBy}" /><br>
+        <input type="text" id="editRedemptionDates" placeholder="Datumy využití (DD.MM.YYYY, DD.MM.YYYY)" value="${v.redemptionDates}" /><br>
+        <input type="number" id="editVoucherValue" placeholder="Hodnota poukazu" value="${v.voucherValue}" /><br>
+        <button onclick="submitEditIndividualVoucher(${purchaseIndex}, ${voucherIndex})">Uložit</button>
+        <button onclick="closeModal()">Zrušit</button>
+      `);
+    }
+
+    function submitEditIndividualVoucher(purchaseIndex, voucherIndex) {
+      const voucher = voucherPurchases[purchaseIndex].individualVouchers[voucherIndex];
+      const oldVoucherValue = voucher.voucherValue;
+
+      voucher.voucherType = document.getElementById('editVoucherType').value;
+      voucher.issueDate = parseDateFromInput(document.getElementById('editIssueDate').value);
+      voucher.redeemedBy = document.getElementById('editRedeemedBy').value;
+      voucher.redemptionDates = document.getElementById('editRedemptionDates').value;
+      voucher.voucherValue = parseFloat(document.getElementById('editVoucherValue').value);
+
+      // Přepočítáme celkovou hodnotu nákupu
+      voucherPurchases[purchaseIndex].totalAmountPaid += (voucher.voucherValue - oldVoucherValue);
+
+      closeModal();
+      updateTable();
+    }
+
+    function deleteVoucherPurchase(index) {
+      if (confirm('Opravdu chcete smazat tento nákup poukazů a všechny jeho jednotlivé poukazy?')) {
+        voucherPurchases.splice(index, 1);
+        updateTable();
+      }
+    }
+
+    function deleteIndividualVoucher(purchaseIndex, voucherIndex) {
+      if (confirm('Opravdu chcete smazat tento konkrétní poukaz?')) {
+        const voucher = voucherPurchases[purchaseIndex].individualVouchers[voucherIndex];
+        voucherPurchases[purchaseIndex].totalVouchersBought--;
+        voucherPurchases[purchaseIndex].totalAmountPaid -= voucher.voucherValue;
+        voucherPurchases[purchaseIndex].individualVouchers.splice(voucherIndex, 1);
+        updateTable();
+      }
+    }
+
+    function updateTable() {
+      const tbody = document.querySelector('#voucherTable tbody');
+      tbody.innerHTML = '';
+      const filter = document.getElementById('filterInput').value.toLowerCase();
+      
+      voucherPurchases.forEach((p, purchaseIndex) => {
+        if (p.purchasingClientName.toLowerCase().includes(filter) || p.purchaseId.toLowerCase().includes(filter)) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${p.purchaseId}</td>
+            <td><button onclick="toggleDetails(${purchaseIndex})">${p.purchasingClientName}</button></td>
+            <td>${p.totalVouchersBought}</td>
+            <td>${p.totalAmountPaid} Kč</td>
+            <td>${p.overallPaymentType}</td>
+            <td>
+              <button class="add" onclick="showAddIndividualVoucherModal(${purchaseIndex})">Přidat poukaz</button> <button class="edit" onclick="editVoucherPurchase(${purchaseIndex})">Upravit</button>
+              <button class="remove" onclick="deleteVoucherPurchase(${purchaseIndex})">Odstranit</button>
+              <button class="export-txt" onclick="exportVoucherPurchaseToTxt(${purchaseIndex})">Export TXT</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+
+          const detailsRow = document.createElement('tr');
+          detailsRow.className = 'hidden';
+          detailsRow.id = `details-${purchaseIndex}`;
+          
+          let vouchersHtml = '';
+          if (p.individualVouchers.length > 0) {
+            vouchersHtml = p.individualVouchers.map((v, voucherIndex) => `
+              <div class="detail-entry">
+                <span>
+                  <strong>Typ:</strong> ${v.voucherType} |
+                  <strong>Vystaven:</strong> ${v.issueDate} |
+                  <strong>Platí do:</strong> ${calculateExpiryDate(v.issueDate)} |
+                  <strong>Využil:</strong> ${v.redeemedBy || 'N/A'} |
+                  <strong>Použito:</strong> ${v.redemptionDates || 'N/A'} |
+                  <strong>Hodnota:</strong> ${v.voucherValue} Kč
+                </span>
+                <button class="edit" onclick="editIndividualVoucher(${purchaseIndex}, ${voucherIndex})">Upravit</button>
+                <button class="remove" onclick="deleteIndividualVoucher(${purchaseIndex}, ${voucherIndex})">Odstranit</button>
+              </div>
+            `).join('');
+          } else {
+            vouchersHtml = `<div class="detail-entry"><span>Žádné individuální poukazy v tomto nákupu.</span></div>`;
+          }
+
+          detailsRow.innerHTML = `<td colspan="6"><div class="voucher-details">${vouchersHtml}</div></td>`;
+          tbody.appendChild(detailsRow);
+        }
+      });
+    }
+
+    function toggleDetails(index) {
+      const row = document.getElementById(`details-${index}`);
+      if (row) row.classList.toggle('hidden');
+    }
+
+    function clearFilter() {
+      document.getElementById('filterInput').value = '';
+      updateTable();
+    }
+
+    function exportAllVoucherPurchases() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(voucherPurchases));
+      const dl = document.createElement('a');
+      dl.setAttribute("href", dataStr);
+      dl.setAttribute("download", "darkove_poukazy.json");
+      dl.click();
+    }
+
+    function importVoucherPurchases(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = e => {
+        voucherPurchases = JSON.parse(e.target.result);
+        updateTable();
+      };
+      reader.readAsText(file);
+    }
+
+    function exportVoucherPurchaseToTxt(purchaseIndex) {
+      const purchase = voucherPurchases[purchaseIndex];
+      let textContent = `--- Detail nákupu poukazů ---\n`;
+      textContent += `ID Nákupu: ${purchase.purchaseId}\n`;
+      textContent += `Klient (Kupující): ${purchase.purchasingClientName}\n`;
+      textContent += `Celkový počet poukazů: ${purchase.totalVouchersBought}\n`;
+      textContent += `Celková zaplacená hodnota: ${purchase.totalAmountPaid} Kč\n`;
+      textContent += `Typ platby za nákup: ${purchase.overallPaymentType}\n\n`;
+
+      if (purchase.individualVouchers && purchase.individualVouchers.length > 0) {
+        textContent += `--- Jednotlivé poukazy v tomto nákupu ---\n`;
+        purchase.individualVouchers.forEach((voucher, index) => {
+          textContent += `\nPoukaz #${index + 1}:\n`;
+          textContent += `  Typ poukazu: ${voucher.voucherType}\n`;
+          textContent += `  Datum vystavení: ${voucher.issueDate}\n`;
+          textContent += `  Platí do: ${calculateExpiryDate(voucher.issueDate)}\n`;
+          textContent += `  Kdo poukaz využil: ${voucher.redeemedBy || 'N/A'}\n`;
+          textContent += `  Datumy využití: ${voucher.redemptionDates || 'N/A'}\n`;
+          textContent += `  Hodnota poukazu: ${voucher.voucherValue} Kč\n`;
+        });
+      } else {
+        textContent += `--- Jednotlivé poukazy v tomto nákupu ---\n`;
+        textContent += `Žádné individuální poukazy v tomto nákupu.\n`;
+      }
+
+      const dataStr = "data:text/plain;charset=utf-8," + encodeURIComponent(textContent);
+      const dl = document.createElement('a');
+      dl.setAttribute("href", dataStr);
+      dl.setAttribute("download", `${purchase.purchasingClientName.replace(/\s/g, '_')}_poukazy.txt`);
+      dl.click();
+    }
+    
+  </script>
+</body>
+</html>

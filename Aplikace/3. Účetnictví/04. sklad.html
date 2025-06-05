@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sklad masérny</title>
+  <style>
+    body { font-family: sans-serif;
+padding: 2rem; background: #000; color: #fff; }
+    table { border-collapse: collapse; width: 100%; background: #111; color: #fff;
+}
+    th, td { border: 1px solid #555; padding: 0.5rem; text-align: center;
+}
+    th { background: #222; }
+    button { padding: 0.5rem; margin: 0.2rem; border: none;
+font-weight: bold; cursor: pointer; border-radius: 5px; }
+    .add { background-color: #4caf50; color: #fff;
+}
+    .edit { background-color: #2196f3; color: #fff; }
+    .remove { background-color: #f44336; color: #fff;
+}
+    .export { background-color: #ff9800; color: #000; }
+    .export-txt { background-color: #ffc107; color: #000;
+}
+    .form-section, .filter { margin: 1rem 0;
+}
+    input[type="text"], input[type="number"] { padding: 0.5rem; width: 200px; margin: 0.2rem;
+}
+    .hidden { display: none; }
+    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111;
+border: 2px solid #555; padding: 1rem; z-index: 1000; border-radius: 10px; display: none;
+}
+    .modal input { margin: 0.2rem; width: 90%; }
+    .overlay { position: fixed;
+top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; z-index: 999;
+}
+    .low-stock { background-color: #583300; /* Tmavě oranžová pro nízký stav */ }
+  </style>
+</head>
+<body>
+  <h1>Sklad masérny</h1>
+
+  <div class="form-section">
+    <button onclick="exportStock()">Exportovat JSON</button>
+    <label>
+      Importovat JSON:
+      <input type="file" onchange="importStock(event)" />
+    </label>
+  </div>
+
+  <div class="form-section">
+    <h3>Přidat položku do skladu</h3>
+    <input type="text" id="itemName" placeholder="Název položky (např. Masážní olej)" />
+    <input type="text" id="itemUnit" placeholder="Jednotka (např. ml, ks, balení)" />
+    <input type="number" id="itemQuantity" placeholder="Množství na skladě" min="0" />
+    <input type="number" id="itemMinQuantity" placeholder="Minimální množství" min="0" />
+    <button onclick="addItemToStock()">Přidat</button>
+  </div>
+
+  <div class="filter">
+    <input type="text" id="filterInput" placeholder="Filtruj položky..." oninput="updateTable()" />
+    <button onclick="clearFilter()">Zrušit filtr</button>
+  </div>
+
+  <table id="stockTable">
+    <thead>
+      <tr>
+        <th>Položka</th>
+        <th>Jednotka</th>
+        <th>Na skladě</th>
+        <th>Minimum</th>
+        <th>Stav</th>
+        <th>Akce</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="editModal"></div>
+
+  <script>
+    let stockItems = [];
+
+    function showModal(contentHTML) {
+      const overlay = document.getElementById('overlay');
+      const modal = document.getElementById('editModal');
+      modal.innerHTML = contentHTML;
+      overlay.style.display = 'block';
+      modal.style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function addItemToStock() {
+      const name = document.getElementById('itemName').value;
+      const unit = document.getElementById('itemUnit').value;
+      const quantity = parseInt(document.getElementById('itemQuantity').value);
+      const minQuantity = parseInt(document.getElementById('itemMinQuantity').value);
+
+      if (!name || !unit || isNaN(quantity) || isNaN(minQuantity) || quantity < 0 || minQuantity < 0) {
+        alert('Prosím, vyplňte všechna pole správně (Množství a Minimum musí být kladná čísla).');
+        return;
+      }
+
+      stockItems.push({
+        name: name,
+        unit: unit,
+        quantity: quantity,
+        minQuantity: minQuantity
+      });
+
+      document.getElementById('itemName').value = '';
+      document.getElementById('itemUnit').value = '';
+      document.getElementById('itemQuantity').value = '';
+      document.getElementById('itemMinQuantity').value = '';
+
+      updateTable();
+    }
+
+    // Funkce pro úpravu množství (přidat/odebrat)
+    function adjustQuantity(index) {
+        const item = stockItems[index];
+        showModal(`
+            <h3>Upravit množství: ${item.name}</h3>
+            <p>Aktuálně na skladě: ${item.quantity} ${item.unit}</p>
+            <input type="number" id="adjustAmount" placeholder="Změna množství (kladné pro přidání, záporné pro odebrání)" /><br>
+            <button onclick="submitAdjustQuantity(${index})">Uložit změnu</button>
+            <button onclick="closeModal()">Zrušit</button>
+        `);
+    }
+
+    function submitAdjustQuantity(index) {
+        const item = stockItems[index];
+        const adjustAmount = parseInt(document.getElementById('adjustAmount').value);
+
+        if (isNaN(adjustAmount)) {
+            alert('Prosím, zadejte platné číslo pro změnu množství.');
+            return;
+        }
+
+        const newQuantity = item.quantity + adjustAmount;
+        if (newQuantity < 0) {
+            alert('Množství na skladě nemůže klesnout pod nulu!');
+            return;
+        }
+
+        item.quantity = newQuantity;
+        closeModal();
+        updateTable();
+    }
+
+    function editItem(index) {
+      const item = stockItems[index];
+      showModal(`
+        <h3>Upravit položku skladu</h3>
+        <input type="text" id="editName" value="${item.name}" placeholder="Název položky" /><br>
+        <input type="text" id="editUnit" value="${item.unit}" placeholder="Jednotka" /><br>
+        <input type="number" id="editQuantity" value="${item.quantity}" placeholder="Množství na skladě" min="0" /><br>
+        <input type="number" id="editMinQuantity" value="${item.minQuantity}" placeholder="Minimální množství" min="0" /><br>
+        <button onclick="submitEditItem(${index})">Uložit</button>
+        <button onclick="closeModal()">Zrušit</button>
+      `);
+    }
+
+    function submitEditItem(index) {
+      const item = stockItems[index];
+      item.name = document.getElementById('editName').value;
+      item.unit = document.getElementById('editUnit').value;
+      
+      const newQuantity = parseInt(document.getElementById('editQuantity').value);
+      const newMinQuantity = parseInt(document.getElementById('editMinQuantity').value);
+
+      if (isNaN(newQuantity) || isNaN(newMinQuantity) || newQuantity < 0 || newMinQuantity < 0) {
+          alert('Prosím, zadejte platná čísla pro množství a minimum.');
+          return;
+      }
+
+      item.quantity = newQuantity;
+      item.minQuantity = newMinQuantity;
+      
+      closeModal();
+      updateTable();
+    }
+
+    function deleteItem(index) {
+      if (confirm('Opravdu chcete odstranit tuto položku ze skladu?')) {
+        stockItems.splice(index, 1);
+        updateTable();
+      }
+    }
+
+    function updateTable() {
+      const tbody = document.querySelector('#stockTable tbody');
+      tbody.innerHTML = '';
+      const filter = document.getElementById('filterInput').value.toLowerCase();
+
+      stockItems.forEach((item, index) => {
+        // Filtr podle názvu nebo jednotky
+        if (item.name.toLowerCase().includes(filter) || item.unit.toLowerCase().includes(filter)) {
+          const row = document.createElement('tr');
+          let statusText = 'OK';
+          let rowClass = '';
+          if (item.quantity <= item.minQuantity) {
+            statusText = 'Nízký stav!';
+            rowClass = 'low-stock'; // Třída pro zvýraznění řádku
+          }
+
+          row.className = rowClass; // Přidá třídu k řádku
+          row.innerHTML = `
+            <td>${item.name}</td>
+            <td>${item.unit}</td>
+            <td>${item.quantity}</td>
+            <td>${item.minQuantity}</td>
+            <td>${statusText}</td>
+            <td>
+              <button class="add" onclick="adjustQuantity(${index})">Upravit množství</button>
+              <button class="edit" onclick="editItem(${index})">Upravit položku</button>
+              <button class="remove" onclick="deleteItem(${index})">Odstranit</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        }
+      });
+    }
+
+    function exportStock() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stockItems));
+      const dl = document.createElement('a');
+      dl.setAttribute("href", dataStr);
+      dl.setAttribute("download", "sklad.json");
+      dl.click();
+    }
+
+    function importStock(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (Array.isArray(importedData) && importedData.every(item => 'name' in item && 'unit' in item && 'quantity' in item && 'minQuantity' in item)) {
+            stockItems = importedData;
+            updateTable();
+            alert('Data skladu byla úspěšně importována!');
+          } else {
+            alert('Chyba: Importovaný soubor nemá očekávaný formát pro sklad.');
+          }
+        } catch (e) {
+          alert('Chyba při čtení JSON souboru: ' + e.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    updateTable(); // Zobrazí tabulku při načtení
+  </script>
+</body>
+</html>

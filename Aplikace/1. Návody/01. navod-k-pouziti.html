@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mstudio - Kompletní Návod k Použití</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000;
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 4xl;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #1a1a1a;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3, h4 {
+            color: #facc15;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; border-bottom: 1px solid #555; padding-bottom: 0.5rem; }
+        h3 { font-size: 1.75rem; }
+        h4 { font-size: 1.5rem; }
+        ul { list-style-type: disc; margin-left: 1.5rem; }
+        ol { list-style-type: decimal; margin-left: 1.5rem; }
+        li { margin-bottom: 0.5rem; }
+        p { margin-bottom: 1rem; }
+        strong { color: #fff; }
+        a { color: #8d8dff; text-decoration: underline; }
+        a:hover { color: #b3b3ff; }
+        kbd {
+            background-color: #2a2a2a;
+            color: #eee;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.3rem;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        .back-link {
+            display: inline-block;
+            background-color: #4a4a4a;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            transition: background-color 0.2s ease;
+        }
+        .back-link:hover {
+            background-color: #6a6a6a;
+        }
+        .back-link:focus {
+            outline: 2px solid #facc15;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container">
+        <!-- Odkaz zpět na Dashboard -->
+        <a href="../../Mstudio.html" class="back-link">← Zpět na Dashboard</a>
+
+        <h1>Návod k aplikacím Mstudio</h1>
+
+        <p>Vítejte v podrobném, ale jednoduchém návodu k používání aplikací v balíčku **Mstudio**. Tento průvodce vám pomůže zorientovat se ve všech nástrojích, které jsem si s pomocí umělé inteligence vytvořil, a využít je naplno pro správu vaší masérny.</p>
+
+        <p>Všechny aplikace jsou navrženy s důrazem na **jednoduchost, přehlednost a přístupnost**, zejména pro ovládání klávesnicí a pro práci se čtečkami obrazovky.</p>
+
+        <h2>Jak je návod strukturován?</h2>
+
+        <p>Návod je rozdělen podle kategorií, které slouží k přehledné organizaci souborů na počítači (například v Průzkumníku Windows nebo Total Commanderu), a každá aplikace má svou vlastní sekci.</p>
+
+        <h3>Kategorie: 1. Klienti</h3>
+
+        <h4>1.1. Klienti (`01. klienti.html`)</h4>
+
+        <p>Tato aplikace slouží k detailní správě vašich klientů, včetně jejich masážní historie.</p>
+
+        <ul>
+            <li>**Účel:** Ukládání informací o klientech (ID, jméno, telefon, diagnóza) a evidence všech masáží, které u vás absolvovali.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Export/Import JSON:** Tlačítka pro uložení všech dat o klientech do JSON souboru (`klienti.json`) a pro jejich načtení.</li>
+                    <li>**Přidat klienta:** Formulář pro zadání nového klienta.</li>
+                    <li>**Přidat masáž ke klientovi:** Formulář pro přidání záznamu masáže k existujícímu klientovi.</li>
+                    <li>**Filtr:** Pole pro rychlé vyhledávání klientů podle jména nebo ID.</li>
+                    <li>**Tabulka klientů:** Přehledná tabulka se seznamem klientů, jejich kontakty, diagnózami, počtem masáží, celkovou částkou a použitými metodami.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Přidání klienta:** Vyplňte pole "ID klienta", "Příjmení a jméno", "Telefon" a "Diagnóza" a klikněte na tlačítko "Přidat".</li>
+                    <li>**Přidání masáže:** Do pole "Jméno klienta" zadejte přesné jméno klienta, kterému chcete masáž přidat. Vyplňte "Datum", "Čas", "Metodu", "Platbu" (H/K/V) a "Cenu". Klikněte na "Přidat masáž". Aplikace automaticky aktualizuje počet masáží a celkovou částku klienta.</li>
+                    <li>**Úprava klienta:** V tabulce klikněte na tlačítko "Upravit" u daného klienta. Otevře se modální okno, kde můžete změnit jméno, telefon nebo diagnózu. Potvrďte "Uložit".</li>
+                    <li>**Úprava masáže:** Klikněte na jméno klienta v tabulce, aby se rozbalila historie masáží. U každé masáže je tlačítko "Upravit". Otevře se modální okno pro úpravu detailů masáže.</li>
+                    <li>**Smazání klienta/masáže:** Použijte tlačítko "Odstranit" u klienta nebo konkrétní masáže.</li>
+                    <li>**Export do TXT:** U každého klienta je tlačítko "Export TXT", které vytvoří textový soubor s detailním přehledem klienta a jeho masáží.</li>
+                    <li>**Filtr:** Zadejte část jména nebo ID klienta do pole "Filtruj klienty..." a tabulka se automaticky aktualizuje. Tlačítko "Zrušit filtr" vymaže filtr.</li>
+                </ul>
+            </li>
+            <li>**Důležité pro přístupnost:**
+                <ul>
+                    <li>Všechny formuláře a tlačítka jsou ovladatelné klávesnicí (Tab, Enter).</li>
+                    <li>Modální okna pro úpravy jsou jasně označená a obsahují tlačítka pro uložení/zrušení.</li>
+                    <li>Rozbalení historie masáží kliknutím na jméno klienta je přístupné i klávesnicí.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>1.2. Ceník masáží (`02. cenik.html`)</h4>
+
+        <p>Aplikace pro správu vašeho ceníku masáží.</p>
+
+        <ul>
+            <li>**Účel:** Vytváření a udržování seznamu masáží s jejich typem, názvem, délkou a cenou. Můžete také sledovat počet a celkovou hodnotu provedených masáží daného typu.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Export/Import JSON:** Tlačítka pro uložení ceníku do JSON souboru (`cenik.json`) a pro jeho načtení.</li>
+                    <li>**Přidat položku:** Formulář pro zadání nové masáže do ceníku.</li>
+                    <li>**Filtr:** Pole pro rychlé vyhledávání položek ceníku.</li>
+                    <li>**Tabulka ceníku:** Přehledná tabulka se všemi položkami ceníku.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Přidání položky:** Vyplňte "Rok", "Typ" (např. K1), "Název masáže", "Délku" a "Cenu". Klikněte na "Přidat".</li>
+                    <li>**Přidání dat (počtu/celkem):** U každé položky ceníku je tlačítko "Přidat data". Otevře se modální okno, kde můžete zadat počet, kolikrát byla daná masáž provedena. Celková částka se vypočítá automaticky.</li>
+                    <li>**Úprava položky:** Tlačítko "Upravit" u položky ceníku otevře modální okno pro změnu detailů.</li>
+                    <li>**Smazání položky:** Tlačítko "Odstranit" pro smazání položky.</li>
+                    <li>**Filtr:** Zadejte text do pole "Filtruj položky..." pro vyhledávání.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>1.3. Tabulky - Historie masáží (`03. tabulky.html`)</h4>
+
+        <p>Tato aplikace slouží k evidenci a přehledu všech provedených masáží.</p>
+
+        <ul>
+            <li>**Účel:** Zaznamenávání každé masáže s datem, časem, ID klienta, jménem klienta, metodou, typem platby a částkou.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Export/Import JSON:** Tlačítka pro uložení historie masáží do JSON souboru (`historie_masazi.json`) a pro jejich načtení.</li>
+                    <li>**Přidat záznam:** Formulář pro přidání nové masáže do historie.</li>
+                    <li>**Tabulka historie:** Přehledná tabulka všech záznamů.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Přidání záznamu:** Vyplňte "Datum", "Čas", "ID", "Klient", "Metoda", "Platba" a "Částka". Klikněte na "Přidat záznam".</li>
+                    <li>**Úprava záznamu:** Tlačítko "Upravit" u záznamu otevře modální okno pro změnu detailů.</li>
+                    <li>**Smazání záznamu:** Tlačítko "Odstranit" pro smazání záznamu.</li>
+                    <li>**Export do TXT:** Tlačítko "Export TXT" pro uložení detailů konkrétní transakce do textového souboru.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>1.4. Masážní časovač (`04. casovac.html`)</h4>
+
+        <p>Jednoduchý časovač pro masáže s přednastavenými časy a možností vlastního nastavení.</p>
+
+        <ul>
+            <li>**Účel:** Měření času masáže s vizuálním zobrazením a zvukovým alarmem.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Přednastavené časy:** Tlačítka pro rychlé nastavení (30, 60, 90, 120 minut).</li>
+                    <li>**Vlastní volba:** Pole pro zadání vlastního počtu minut a tlačítko "Vlastní volba".</li>
+                    <li>**Nahrát vlastní zvuk:** Možnost nahrát vlastní zvukový soubor pro alarm.</li>
+                    <li>**Ovládací prvky:** Tlačítka "Start", "Pauza", "Zastavit".</li>
+                    <li>**Displej časovače:** Velký digitální displej zobrazující zbývající čas.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Nastavení času:** Klikněte na jedno z přednastavených tlačítek, nebo zadejte minuty do pole "Minuty" a klikněte na "Vlastní volba".</li>
+                    <li>**Nahrání zvuku:** Klikněte na "Nahrát vlastní zvuk" a vyberte zvukový soubor z počítače.</li>
+                    <li>**Spuštění/Pauza/Zastavení:** Použijte odpovídající tlačítka. Po dosažení nuly se přehraje alarm.</li>
+                </ul>
+            </li>
+            <li>**Důležité pro přístupnost:**
+                <ul>
+                    <li>Všechna tlačítka a pole jsou ovladatelné klávesnicí.</li>
+                    <li>Časovač je vizuálně výrazný.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>Kategorie: 2. Účetnictví</h3>
+
+        <h4>2.1. Účetnictví (`01. ucetnictvi.html`)</h4>
+
+        <p>Komplexní nástroj pro sledování příjmů a výdajů vaší masérny s měsíčními a ročními souhrny.</p>
+
+        <ul>
+            <li>**Účel:** Evidence všech finančních transakcí (příjmy, výdaje), generování měsíčních a ročních přehledů tržeb a možnost zadání počtu masáží za rok.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Export/Import JSON:** Tlačítka pro uložení všech účetních dat do JSON souboru (`ucetnictvi.json`) a pro jejich načtení.</li>
+                    <li>**Přidat transakci:** Formulář pro zadání data, typu (příjem/výdaj), částky a popisu transakce.</li>
+                    <li>**Filtr:** Pole pro vyhledávání transakcí podle popisu nebo částky.</li>
+                    <li>**Přehled transakcí:** Tabulka se všemi zaznamenanými transakcemi.</li>
+                    <li>**Měsíční přehledy:** Souhrnná tabulka příjmů, výdajů a tržeb za jednotlivé měsíce.</li>
+                    <li>**Roční přehledy:** Souhrnná tabulka příjmů, výdajů, tržeb a počtu masáží za jednotlivé roky.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Přidání transakce:** Vyplňte "Datum" (pomocí kalendáře), vyberte "Typ" (Příjem/Výdaj), zadejte "Částku" a "Popis transakce". Klikněte "Přidat transakci".</li>
+                    <li>**Úprava/Smazání transakce:** Použijte tlačítka "Upravit" nebo "Odstranit" u každé transakce v tabulce.</li>
+                    <li>**Úprava počtu masáží (roční přehled):** V ročním přehledu u každého roku je tlačítko "Upravit počet masáží". Kliknutím na něj můžete zadat počet masáží pro daný rok.</li>
+                    <li>**Export do TXT:** Tlačítko "Export TXT" pro uložení detailů konkrétní transakce do textového souboru.</li>
+                </ul>
+            </li>
+            <li>**Důležité pro přístupnost:**
+                <ul>
+                    <li>Datumové a číselné vstupy jsou typu `date` a `number`, což usnadňuje zadávání.</li>
+                    <li>Měsíční a roční souhrny se automaticky aktualizují.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>2.2. Správa dárkových poukazů (`02. poukazy.html`)</h4>
+
+        <p>Aplikace pro komplexní správu dárkových poukazů, včetně jejich vystavení, sledování a využití.</p>
+
+        <ul>
+            <li>**Účel:** Evidence nákupů poukazů (kdo koupil, typ platby) a detailní správa jednotlivých poukazů (typ, datum vystavení, hodnota, kdo využil, datumy využití, platnost).</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Export/Import JSON:** Tlačítka pro uložení všech dat o poukazech do JSON souboru (`darkove_poukazy.json`) a pro jejich načtení.</li>
+                    <li>**Přidat nákup poukazů:** Formulář pro přidání nového nákupu poukazů (např. klient koupil 3 poukazy najednou).</li>
+                    <li>**Filtr:** Pole pro vyhledávání nákupů poukazů.</li>
+                    <li>**Tabulka poukazů:** Přehledná tabulka nákupů, s možností rozbalení detailů jednotlivých poukazů.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Přidání nákupu:** Vyplňte "ID nákupu", "Jméno kupujícího klienta" a "Typ platby". Klikněte "Přidat nákup".</li>
+                    <li>**Přidání individuálního poukazu k nákupu:** V tabulce u nákupu klikněte na tlačítko "Přidat poukaz". Otevře se modální okno pro zadání detailů nového poukazu (Typ, Datum vystavení, Hodnota).</li>
+                    <li>**Zobrazení/Skrytí detailů:** Klikněte na jméno klienta v tabulce nákupů, aby se rozbalily/sbalily detaily jednotlivých poukazů v daném nákupu.</li>
+                    <li>**Úprava nákupu/poukazů:** Tlačítka "Upravit" u nákupu nebo u konkrétního poukazu otevřou modální okna pro úpravy.</li>
+                    <li>**Smazání nákupu/poukazů:** Tlačítka "Odstranit" pro smazání celého nákupu nebo jednotlivého poukazu.</li>
+                    <li>**Export do TXT:** Tlačítko "Export TXT" pro uložení detailů konkrétního nákupu poukazů do textového souboru.</li>
+                </ul>
+            </li>
+            <li>**Důležité pro přístupnost:**
+                <ul>
+                    <li>Automatické počítání platnosti poukazu (rok od vystavení).</li>
+                    <li>Modální okna pro přidávání/úpravy.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>2.3. Věrnostní systém - Admin (`03. vernostni_program.html`)</h4>
+
+        <p>Administrační rozhraní pro správu bodového věrnostního systému pro klienty.</p>
+
+        <ul>
+            <li>**Účel:** Sledování a úprava věrnostních bodů klientů, s automatickým přepočtem bonusů a extra bonusů.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Přidat klienta:** Pole pro přidání nového klienta do věrnostního systému.</li>
+                    <li>**Export/Import JSON:** Tlačítka pro uložení všech dat věrnostního systému do JSON souboru (`vernostni_klienti.json`) a pro jejich načtení.</li>
+                    <li>**Filtr:** Pole pro vyhledávání klientů.</li>
+                    <li>**Tabulka klientů:** Zobrazuje ID klienta, aktuální body, bonusy, extra bonusy a celkový počet bodů.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Přidání klienta:** Zadejte ID nebo jméno klienta a klikněte "Přidat klienta".</li>
+                    <li>**Přidání/Odebrání bodů:** Použijte tlačítka "+1 bod" a "-1 bod" u každého klienta. Systém automaticky přepočítává bonusy (za každých 9 bodů) a extra bonusy (za každé 3 bonusy).</li>
+                    <li>**Export do TXT:** Tlačítko "Export TXT" pro uložení bodového stavu konkrétního klienta do textového souboru.</li>
+                </ul>
+            </li>
+            <li>**Důležité pro přístupnost:**
+                <ul>
+                    <li>Jednoduché ovládání bodů pomocí tlačítek.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>2.4. Sklad masérny (`04. sklad.html`)</h4>
+
+        <p>Aplikace pro správu zásob ve vaší masérně.</p>
+
+        <ul>
+            <li>**Účel:** Sledování množství položek na skladě a upozornění na nízký stav zásob.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Export/Import JSON:** Tlačítka pro uložení dat skladu do JSON souboru (`sklad.json`) a pro jejich načtení.</li>
+                    <li>**Přidat položku:** Formulář pro zadání názvu, jednotky, množství a minimálního množství položky.</li>
+                    <li>**Filtr:** Pole pro vyhledávání položek.</li>
+                    <li>**Tabulka skladu:** Zobrazuje název, jednotku, množství na skladě, minimální množství a stav (OK/Nízký stav!). Řádky s nízkým stavem jsou zvýrazněny tmavě oranžovou barvou.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Přidání položky:** Vyplňte "Název položky", "Jednotku", "Množství na skladě" a "Minimální množství". Klikněte "Přidat".</li>
+                    <li>**Úprava množství:** Tlačítko "Upravit množství" otevře modální okno, kde můžete přidat nebo odebrat množství položky.</li>
+                    <li>**Úprava položky:** Tlačítko "Upravit položku" otevře modální okno pro změnu názvu, jednotky nebo minimálního množství.</li>
+                    <li>**Smazání položky:** Tlačítko "Odstranit" pro smazání položky ze skladu.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>Kategorie: 3. Poznámky</h3>
+
+        <h4>3.1. Poznámky (`01. poznamky.html`)</h4>
+
+        <p>Jednoduchá aplikace pro ukládání a správu vašich poznámek.</p>
+
+        <ul>
+            <li>**Účel:** Zaznamenávání textových poznámek s názvem a obsahem.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Export/Import JSON:** Tlačítka pro uložení poznámek do JSON souboru (`poznamky.json`) a pro jejich načtení.</li>
+                    <li>**Přidat poznámku:** Formulář pro zadání názvu a textu poznámky.</li>
+                    <li>**Filtr:** Pole pro vyhledávání poznámek podle názvu nebo obsahu.</li>
+                    <li>**Tabulka poznámek:** Zobrazuje názvy poznámek.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Přidání poznámky:** Vyplňte "Název poznámky" a "Poznámku" (text). Klikněte "Přidat".</li>
+                    <li>**Zobrazení poznámky:** Klikněte na název poznámky v tabulce pro zobrazení celého textu v modálním okně.</li>
+                    <li>**Úprava poznámky:** Tlačítko "Upravit" otevře modální okno pro změnu názvu nebo textu.</li>
+                    <li>**Smazání poznámky:** Tlačítko "Smazat" pro smazání poznámky.</li>
+                    <li>**Export do TXT:** Tlačítko "Export do TXT" pro uložení poznámky do textového souboru.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>3.2. To-Do Listy (`02. todolist.html`)</h4>
+
+        <p>Aplikace pro správu více seznamů úkolů s detaily jako termín a priorita.</p>
+
+        <ul>
+            <li>**Účel:** Vytváření a organizování úkolů do různých To-Do listů (např. "Práce", "Osobní"). Můžete přidávat úkoly s popisem, termínem a prioritou, označovat je jako splněné a upravovat je.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Export/Import JSON:** Tlačítka pro uložení všech To-Do listů do JSON souboru (`todolist.json`) a pro jejich načtení.</li>
+                    <li>**Přidat nový To-Do List:** Formulář pro vytvoření nového seznamu úkolů.</li>
+                    <li>**Tabulka listů:** Přehled všech vašich To-Do listů s počtem úkolů v každém.</li>
+                    <li>**Sekce úkolů:** Po výběru listu se zobrazí tabulka s úkoly daného listu, formulář pro přidání úkolu a tlačítko "Zpět na seznam listů".</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Vytvoření listu:** Zadejte "Název listu" a klikněte "Přidat list".</li>
+                    <li>**Zobrazení úkolů listu:** Klikněte na název listu v tabulce.</li>
+                    <li>**Přidání úkolu:** V sekci úkolů vyplňte "Popis úkolu", "Termín" (pomocí kalendáře) a "Prioritu". Klikněte "Přidat úkol".</li>
+                    <li>**Označení jako splněné:** Zaškrtněte políčko u úkolu v tabulce. Splněné úkoly jsou přeškrtnuté a šedé.</li>
+                    <li>**Úprava/Smazání listu/úkolu:** Použijte tlačítka "Upravit" nebo "Odstranit" u listů nebo úkolů.</li>
+                    <li>**Návrat:** Tlačítko "Zpět na seznam listů" vás vrátí na hlavní přehled listů.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>3.3. Plánovač událostí (`03. planovac.html`)</h4>
+
+        <p>Jednoduchý kalendář pro plánování událostí s datem, časem, názvem a popisem.</p>
+
+        <ul>
+            <li>**Účel:** Evidence a organizace důležitých událostí, schůzek nebo kontrol.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Export/Import JSON:** Tlačítka pro uložení událostí do JSON souboru (`planovac.json`) a pro jejich načtení.</li>
+                    <li>**Přidat novou událost:** Formulář pro zadání data, času, názvu a popisu události.</li>
+                    <li>**Filtr:** Pole pro vyhledávání událostí.</li>
+                    <li>**Tabulka událostí:** Zobrazuje všechny události seřazené chronologicky.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Přidání události:** Vyplňte "Datum", "Čas", "Název události" a "Popis události". Klikněte "Přidat událost".</li>
+                    <li>**Úprava/Smazání události:** Použijte tlačítka "Upravit" nebo "Odstranit" u události v tabulce.</li>
+                    <li>**Filtr:** Zadejte text do pole "Filtruj události..." pro vyhledávání.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>3.4. Nápady a inspirace (`04. napady.html`)</h4>
+
+        <p>Aplikace pro ukládání a organizaci vašich nápadů a inspirace.</p>
+
+        <ul>
+            <li>**Účel:** Zaznamenávání nápadů s názvem, popisem a kategorií (např. Marketing, Služby, AI).</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Export/Import JSON:** Tlačítka pro uložení nápadů do JSON souboru (`napady.json`) a pro jejich načtení.</li>
+                    <li>**Přidat nový nápad:** Formulář pro zadání názvu, popisu a výběr kategorie nápadu.</li>
+                    <li>**Filtr:** Pole pro vyhledávání nápadů.</li>
+                    <li>**Tabulka nápadů:** Zobrazuje názvy nápadů a jejich kategorie.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Přidání nápadu:** Vyplňte "Název nápadu", "Popis nápadu" a vyberte "Kategorii". Klikněte "Přidat nápad".</li>
+                    <li>**Zobrazení nápadu:** Klikněte na název nápadu v tabulce pro zobrazení celého popisu v modálním okně.</li>
+                    <li>**Úprava/Smazání nápadu:** Použijte tlačítka "Upravit" nebo "Smazat" u nápadu.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>Kategorie: 4. Osobní</h3>
+
+        <h4>4.1. Správce audioknih (`01. knihovna.html`)</h4>
+
+        <p>Tato aplikace slouží k evidenci a správě vaší sbírky audioknih (nebo i klasických knih).</p>
+
+        <ul>
+            <li>**Účel:** Ukládání informací o audioknihách (název, autor, interpret), označování oblíbených položek a přidávání vlastních anotací a poznámek.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Export/Import JSON:** Tlačítka pro uložení všech dat o audioknihách do JSON souboru (`audioknihy.json`) a pro jejich načtení.</li>
+                    <li>**Přidat knihu / audioknihu:** Formulář pro zadání názvu, autora a interpreta.</li>
+                    <li>**Filtr:** Pole pro rychlé vyhledávání podle názvu, autora nebo interpreta.</li>
+                    <li>**Tabulka audioknih:** Přehledná tabulka se seznamem všech zaznamenaných audioknih.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Přidání knihy/audioknihy:** Vyplňte pole "Název", "Autor" a "Interpret" a klikněte na tlačítko "Přidat".</li>
+                    <li>**Označení jako oblíbená:** V tabulce u každé položky je zaškrtávací políčko "Oblíbená". Kliknutím na něj můžete knihu/audioknihu označit jako oblíbenou nebo označení zrušit.</li>
+                    <li>**Zobrazení/Přidání/Úprava anotace:** Klikněte na název knihy/audioknihy v tabulce. Otevře se rozbalovací sekce pod řádkem, kde uvidíte anotaci a poznámku. Zde najdete tlačítko "Přidat/Upravit anotaci". Kliknutím na něj otevřete modální okno pro zadání nebo úpravu anotace.</li>
+                    <li>**Zobrazení/Přidání/Úprava poznámky:** Stejně jako u anotace, v rozbalovací sekci pod řádkem najdete tlačítko "Přidat/Upravit poznámku". Otevře se modální okno pro zadání nebo úpravu poznámky.</li>
+                    <li>**Úprava detailů (Název, Autor, Interpret):** U každé položky v tabulce je tlačítko "Upravit". Kliknutím na něj otevřete modální okno pro změnu názvu, autora nebo interpreta.</li>
+                    <li>**Smazání položky:** Použijte tlačítko "Smazat" u dané položky v tabulce.</li>
+                    <li>**Export do TXT:** Tlačítko "Export TXT" u každé položky vytvoří textový soubor s detailním přehledem knihy/audioknihy, včetně anotace a poznámky.</li>
+                    <li>**Filtr:** Zadejte část názvu, autora nebo interpreta do pole "Vyhledat..." a tabulka se automaticky aktualizuje. Tlačítko "Zrušit filtr" vymaže filtr.</li>
+                </ul>
+            </li>
+            <li>**Důležité pro přístupnost:**
+                <ul>
+                    <li>Všechny formuláře, tlačítka a zaškrtávací políčka jsou plně ovladatelné klávesnicí (Tab, Enter, mezerník).</li>
+                    <li>Modální okna pro úpravy anotací a poznámek jsou jasně označená a přístupná.</li>
+                    <li>Rozbalení detailů knihy/audioknihy kliknutím na název je přístupné i klávesnicí.</li>
+                    <li>Tabulka se automaticky řadí podle autora a poté podle názvu, což usnadňuje orientaci.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>4.2. Osmisměrka (`02. osmismerky.html`)</h4>
+
+        <p>Zábavná aplikace pro generování a hraní osmisměrek.</p>
+
+        <ul>
+            <li>**Účel:** Vytváření vlastních osmisměrek z vámi zadaných slov a jejich hraní.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Vstupní slova:** Textové pole pro zadání slov oddělených čárkou.</li>
+                    <li>**Velikost mřížky:** Výběr velikosti osmisměrky (např. 10x10, 12x12).</li>
+                    <li>**Ovládací prvky:** Tlačítka "Vytvořit nové kolo", "Zamíchat mřížku", "Resetovat kolo", "Nápověda".</li>
+                    <li>**Export/Import JSON:** Tlačítka pro uložení/načtení uložených her.</li>
+                    <li>**Mřížka:** Samotná osmisměrka, kde hledáte slova.</li>
+                    <li>**Seznam slov:** Zobrazuje slova, která máte najít, nalezená slova jsou zvýrazněna.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Vytvoření nové osmisměrky:** Zadejte slova do textového pole, vyberte velikost mřížky a klikněte "Vytvořit nové kolo".</li>
+                    <li>**Hraní:** Pohybujte se po mřížce pomocí šipek na klávesnici. Stiskněte Enter pro výběr písmene. Vybraná písmena se zvýrazní. Jakmile vyberete slovo, které je v seznamu, označí se jako nalezené.</li>
+                    <li>**Nápověda:** Tlačítko "Nápověda" zvýrazní první písmeno jednoho z nenalezených slov.</li>
+                    <li>**Zvukové efekty:** Aplikace přehrává zvuky při výběru písmen a nalezení slova.</li>
+                </ul>
+            </li>
+            <li>**Důležité pro přístupnost:**
+                <ul>
+                    <li>Plně ovladatelné klávesnicí (šipky pro pohyb, Enter pro výběr, Escape pro zrušení výběru).</li>
+                    <li>Oznámení pro čtečky obrazovky při pohybu fokusem, výběru písmen a nalezení slova.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>Kategorie: 5. Generátory</h3>
+
+        <h4>5.1. Generátor QR kódů (`01. qrcode.html`)</h4>
+
+        <p>Jednoduchý nástroj pro generování QR kódů z textu nebo URL adres.</p>
+
+        <ul>
+            <li>**Účel:** Rychlé vytváření QR kódů, které můžete stáhnout a použít.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Vstupní text/URL:** Pole pro zadání textu nebo URL adresy.</li>
+                    <li>**Velikost:** Výběr velikosti generovaného QR kódu.</li>
+                    <li>**Ovládací prvky:** Tlačítka "Vygenerovat QR kód", "Stáhnout jako PNG", "Vyčistit".</li>
+                    <li>**QR kód:** Zobrazuje vygenerovaný QR kód.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Generování:** Zadejte text nebo URL do pole a klikněte "Vygenerovat QR kód".</li>
+                    <li>**Stažení:** Klikněte "Stáhnout jako PNG" pro uložení obrázku QR kódu.</li>
+                    <li>**Vyčistit:** Tlačítko "Vyčistit" vymaže pole a QR kód.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>5.2. Generátor dárkových poukazů (`02. generator-dp.html`)</h4>
+
+        <p>Pokročilý nástroj pro vizuální tvorbu a stahování dárkových poukazů.</p>
+
+        <ul>
+            <li>**Účel:** Vytváření personalizovaných dárkových poukazů s vlastním textem, logem, QR kódem, doplňkovými obrázky a výběrem pozadí.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Formulář pro texty:** Pole pro zadání nadpisu, názvu služby, jména obdarovaného, dárce, hodnoty, platnosti, věnování a doplňujících informací.</li>
+                    <li>**Ovládání rozložení textu:** Ke každému textovému poli jsou přidány možnosti pro zarovnání (vlevo/střed/vpravo) a vertikální posun (Y-offset), což vám dává velkou kontrolu nad vzhledem poukazu.</li>
+                    <li>**Nahrávání obrázků:** Možnosti nahrát vlastní logo, QR kód a doplňkový obrázek.</li>
+                    <li>**Výběr pozadí:** Přednastavené šablony pozadí (DL, A4, sezónní gradient/jezero) a možnost nahrát vlastní pozadí.</li>
+                    <li>**Barva textu a font:** Výběr barvy textu a typu fontu.</li>
+                    <li>**Velikost písma:** Nastavení velikosti písma pro nadpis, hlavní text a malý text (patička).</li>
+                    <li>**Náhled poukazu:** Velký canvas, který v reálném čase zobrazuje, jak bude poukaz vypadat.</li>
+                    <li>**Export/Import dat:** Tlačítka pro uložení/načtení dat poukazu (včetně base64 obrázků) a nastavení generátoru do/z JSON souborů.</li>
+                    <li>**Stažení:** Tlačítka "Stáhnout jako PNG" a "Stáhnout jako PDF".</li>
+                </ul>
+            </li>
+            <li>**Jak používat:**
+                <ul>
+                    <li>**Vyplňování textů:** Zadejte požadované texty do příslušných polí.</li>
+                    <li>**Úprava rozložení textu:** Použijte rozbalovací menu "Zarovnání" a pole "Posun Y" u každého textového bloku pro přesné umístění.</li>
+                    <li>**Nahrávání obrázků:** Klikněte na "Nahrát logo", "Nahrát QR kód" nebo "Nahrát doplňkový obrázek" a vyberte soubor.</li>
+                    <li>**Výběr pozadí:** Zvolte šablonu z rozbalovacího menu "Vybrat pozadí šablony" nebo nahrajte vlastní obrázek.</li>
+                    <li>**Barva/Font/Velikost:** Vyberte si barvu textu, font a nastavte velikosti písma.</li>
+                    <li>**Náhled:** Canvas se automaticky aktualizuje s každou změnou.</li>
+                    <li>**Export/Import dat poukazu:** Umožňuje uložit/načíst kompletní stav poukazu (včetně obrázků) pro pozdější úpravy.</li>
+                    <li>**Export/Import nastavení:** Umožňuje uložit/načíst pouze nastavení generátoru (bez obrázků a konkrétních textů poukazu), což je skvělé pro přednastavení šablon.</li>
+                    <li>**Stažení:** Klikněte na "Stáhnout jako PNG" nebo "Stáhnout jako PDF" pro uložení poukazu.</li>
+                </ul>
+            </li>
+            <li>**Důležité pro přístupnost:**
+                <ul>
+                    <li>Všechny vstupní pole a ovládací prvky jsou přístupné klávesnicí.</li>
+                    <li>Modální okna pro zprávy nahrazují `alert()` pro lepší uživatelský zážitek.</li>
+                    <li>Generátor automaticky generuje unikátní ID poukazu.</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Správa klientů</title>
+  <style>
+    body { font-family: sans-serif;
+    padding: 2rem; background: #000; color: #fff; }
+    table { border-collapse: collapse; width: 100%; background: #111; color: #fff;
+    }
+    th, td { border: 1px solid #555; padding: 0.5rem; text-align: center;
+    }
+    th { background: #222; }
+    button { padding: 0.5rem; margin: 0.2rem; border: none;
+    font-weight: bold; cursor: pointer; border-radius: 5px; }
+    .add { background-color: #4caf50; color: #fff;
+    }
+    .edit { background-color: #2196f3; color: #fff; }
+    .remove { background-color: #f44336; color: #fff;
+    }
+    .export { background-color: #ff9800; color: #000; }
+    .export-txt { background-color: #ffc107; color: #000; } /* Nový styl pro export TXT tlačítko */
+    .form-section, .filter { margin: 1rem 0;
+    }
+    input[type="text"], input[type="tel"], input[type="number"] { padding: 0.5rem; width: 200px; margin: 0.2rem;
+    }
+    .hidden { display: none; }
+    .massage-history { background-color: #222; margin-top: 0.5rem; padding: 0.5rem;
+    border-radius: 5px; }
+    .history-entry { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;
+    }
+    .history-entry span { flex-grow: 1; }
+    .history-entry button { margin-left: 0.5rem;
+    }
+    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111;
+    border: 2px solid #555; padding: 1rem; z-index: 1000; border-radius: 10px; display: none;
+    }
+    .modal input { margin: 0.2rem; width: 90%; }
+    .overlay { position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <h1>Správa klientů</h1>
+
+  <div class="form-section">
+    <button onclick="exportAllClients()">Exportovat JSON</button>
+    <label>
+      Importovat JSON:
+      <input type="file" onchange="importClients(event)" />
+    </label>
+  </div>
+
+  <div class="form-section">
+    <h3>Přidat klienta</h3>
+    <input type="text" id="id" placeholder="ID klienta" />
+    <input type="text" id="name" placeholder="Příjmení a jméno" />
+    <input type="tel" id="phone" placeholder="Telefon" />
+    <input type="text" id="diag" placeholder="Diagnóza" />
+    <button onclick="addClient()">Přidat</button>
+  </div>
+
+  <div class="form-section">
+    <h3>Přidat masáž ke
+    klientovi</h3>
+    <input type="text" id="massageClient" placeholder="Jméno klienta" />
+    <input type="text" id="massageDate" placeholder="Datum (DD.MM.YYYY)" />
+    <input type="text" id="massageTime" placeholder="Čas (např. 08:00 - 09:00)" />
+    <input type="text" id="massageMethod" placeholder="Metoda (např.
+    K1)" />
+    <input type="text" id="massagePayment" placeholder="Platba (H/K/V)" />
+    <input type="number" id="massagePrice" placeholder="Cena (např. 690)" />
+    <button onclick="addMassage()">Přidat masáž</button>
+  </div>
+
+  <div class="filter">
+    <input type="text" id="filterInput" placeholder="Filtruj klienty..." oninput="updateTable()" />
+    <button onclick="clearFilter()">Zrušit filtr</button>
+  </div>
+
+  <table id="clientTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Klient</th>
+        <th>Telefon</th>
+        <th>Diagnóza</th>
+      
+        <th>Počet</th>
+        <th>Částka</th>
+        <th>Metody</th>
+        <th>Akce</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="editModal"></div>
+
+  <script>
+    let clients = [];
+
+    function showModal(contentHTML) {
+      const overlay = document.getElementById('overlay');
+      const modal = document.getElementById('editModal');
+    modal.innerHTML = contentHTML;
+      overlay.style.display = 'block';
+      modal.style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('overlay').style.display = 'none';
+    document.getElementById('editModal').style.display = 'none';
+    }
+
+    function addClient() {
+      const id = document.getElementById('id').value;
+    const name = document.getElementById('name').value;
+      const phone = document.getElementById('phone').value;
+      const diag = document.getElementById('diag').value;
+      if (!id || !name) return;
+    clients.push({ id, name, phone, diag, massages: [], total: 0, count: 0, methods: [] });
+      document.getElementById('id').value = '';
+      document.getElementById('name').value = '';
+    document.getElementById('phone').value = '';
+      document.getElementById('diag').value = '';
+      updateTable();
+    }
+
+    function addMassage() {
+      const clientName = document.getElementById('massageClient').value;
+    const date = document.getElementById('massageDate').value;
+      const time = document.getElementById('massageTime').value;
+      const method = document.getElementById('massageMethod').value;
+      const payment = document.getElementById('massagePayment').value;
+      const price = parseFloat(document.getElementById('massagePrice').value);
+    const client = clients.find(c => c.name.toLowerCase() === clientName.toLowerCase());
+      if (!client || !date || !time || !method || !payment || isNaN(price)) return;
+    client.massages.push({ date, time, method, payment, price });
+      client.count++;
+      client.total += price;
+      if (!client.methods.includes(method)) client.methods.push(method);
+
+      updateTable();
+
+      document.getElementById('massageClient').value = '';
+    document.getElementById('massageDate').value = '';
+      document.getElementById('massageTime').value = '';
+      document.getElementById('massageMethod').value = '';
+      document.getElementById('massagePayment').value = '';
+      document.getElementById('massagePrice').value = '';
+    }
+
+    function editClient(index) {
+      const c = clients[index];
+    showModal(`
+        <h3>Upravit klienta</h3>
+        <input type="text" id="editName" value="${c.name}" /><br>
+        <input type="text" id="editPhone" value="${c.phone}" /><br>
+        <input type="text" id="editDiag" value="${c.diag}" /><br>
+        <button onclick="submitEditClient(${index})">Uložit</button>
+        <button onclick="closeModal()">Zrušit</button>
+      `);
+    }
+
+    function submitEditClient(index) {
+      clients[index].name = document.getElementById('editName').value;
+      clients[index].phone = document.getElementById('editPhone').value;
+    clients[index].diag = document.getElementById('editDiag').value;
+      closeModal();
+      updateTable();
+    }
+
+    function editMassage(clientIndex, massageIndex) {
+      const m = clients[clientIndex].massages[massageIndex];
+    showModal(`
+        <h3>Upravit masáž</h3>
+        <input type="text" id="editDate" value="${m.date}" /><br>
+        <input type="text" id="editTime" value="${m.time}" /><br>
+        <input type="text" id="editMethod" value="${m.method}" /><br>
+        <input type="text" id="editPayment" value="${m.payment}" /><br>
+        <input type="number" id="editPrice" value="${m.price}" /><br>
+        <button onclick="submitEditMassage(${clientIndex}, ${massageIndex})">Uložit</button>
+        <button onclick="closeModal()">Zrušit</button>
+      `);
+    }
+
+    function submitEditMassage(clientIndex, massageIndex) {
+      const m = clients[clientIndex].massages[massageIndex];
+    const newPrice = parseFloat(document.getElementById('editPrice').value);
+      if (!isNaN(newPrice)) {
+        clients[clientIndex].total += newPrice - m.price;
+    m.price = newPrice;
+      }
+      m.date = document.getElementById('editDate').value;
+      m.time = document.getElementById('editTime').value;
+      m.method = document.getElementById('editMethod').value;
+    m.payment = document.getElementById('editPayment').value;
+      closeModal();
+      updateTable();
+    }
+
+    function deleteClient(index) {
+      clients.splice(index, 1);
+      updateTable();
+    }
+
+    function deleteMassage(clientIndex, massageIndex) {
+      const massage = clients[clientIndex].massages[massageIndex];
+      clients[clientIndex].count--;
+    clients[clientIndex].total -= massage.price;
+      clients[clientIndex].massages.splice(massageIndex, 1);
+      updateTable();
+    }
+
+    function updateTable() {
+      const tbody = document.querySelector('#clientTable tbody');
+    tbody.innerHTML = '';
+      const filter = document.getElementById('filterInput').value.toLowerCase();
+      clients.forEach((c, index) => {
+        if (c.name.toLowerCase().includes(filter) || c.id.toLowerCase().includes(filter)) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${c.id}</td>
+            <td><button onclick="toggleHistory(${index})">${c.name}</button></td>
+            <td>${c.phone}</td>
+            <td>${c.diag}</td>
+    
+            <td>${c.count}</td>
+            <td>${c.total}</td>
+            <td>${c.methods.join(', ')}</td>
+            <td>
+              <button class="edit" onclick="editClient(${index})">Upravit</button>
+              <button class="remove" onclick="deleteClient(${index})">Odstranit</button>
+              <button class="export-txt" onclick="exportClientToTxt(${index})">Export TXT</button> </td>
+          `;
+ 
+          tbody.appendChild(row);
+          const historyRow = document.createElement('tr');
+          historyRow.className = 'hidden';
+          historyRow.id = `history-${index}`;
+          historyRow.innerHTML = `<td colspan="8"><div class="massage-history">${c.massages.map((m, mi) => `
+            <div class="history-entry">
+              <span>🕓 ${m.date}, ${m.time} |
+    ${m.method} | ${m.payment} | ${m.price} Kč</span>
+              <button class="edit" onclick="editMassage(${index}, ${mi})">Upravit</button>
+              <button class="remove" onclick="deleteMassage(${index}, ${mi})">Odstranit</button>
+            </div>`).join('')}</div></td>`;
+    tbody.appendChild(historyRow);
+        }
+      });
+    }
+
+    function toggleHistory(index) {
+      const row = document.getElementById(`history-${index}`);
+    if (row) row.classList.toggle('hidden');
+    }
+
+    function clearFilter() {
+      document.getElementById('filterInput').value = '';
+      updateTable();
+    }
+
+    function exportAllClients() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(clients));
+    const dl = document.createElement('a');
+      dl.setAttribute("href", dataStr);
+      dl.setAttribute("download", "klienti.json");
+      dl.click();
+    }
+
+    function importClients(event) {
+      const file = event.target.files[0];
+    const reader = new FileReader();
+      reader.onload = e => {
+        clients = JSON.parse(e.target.result);
+    updateTable();
+      };
+      reader.readAsText(file);
+    }
+
+    // Nová funkce pro export klienta do TXT souboru
+    function exportClientToTxt(index) {
+      const client = clients[index];
+      let textContent = `--- Detaily klienta ---\n`;
+      textContent += `ID: ${client.id}\n`;
+      textContent += `Jméno: ${client.name}\n`;
+      textContent += `Telefon: ${client.phone}\n`;
+      textContent += `Diagnóza: ${client.diag}\n\n`;
+
+      if (client.massages && client.massages.length > 0) {
+        textContent += `--- Historie masáží ---\n`;
+        client.massages.forEach(massage => {
+          textContent += `Datum: ${massage.date}, Čas: ${massage.time}, Metoda: ${massage.method}, Platba: ${massage.payment}, Cena: ${massage.price} Kč\n`;
+        });
+        textContent += `\nCelkem masáží: ${client.count}\n`;
+        textContent += `Celkem zaplaceno: ${client.total} Kč\n`;
+        textContent += `Použité metody: ${client.methods.join(', ')}\n`;
+      } else {
+        textContent += `--- Historie masáží ---\n`;
+        textContent += `Žádné masáže pro tohoto klienta.\n`;
+      }
+
+      const dataStr = "data:text/plain;charset=utf-8," + encodeURIComponent(textContent);
+      const dl = document.createElement('a');
+      dl.setAttribute("href", dataStr);
+      dl.setAttribute("download", `${client.name.replace(/\s/g, '_')}_detaily.txt`);
+      dl.click();
+    }
+  </script>
+</body>
+</html>

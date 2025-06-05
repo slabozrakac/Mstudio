@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Osmisměrka</title>
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    textarea, input, button, select {
+      font-size: 1rem;
+      margin: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: none;
+      color: #000; /* Barva textu pro input/textarea/select/button */
+    }
+    button {
+        background: #4caf50;
+        color: white;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #45a049;
+    }
+    table {
+      margin: 1rem auto;
+      border-collapse: collapse;
+    }
+    td {
+      width: 2.5rem;
+      height: 2.5rem;
+      text-align: center;
+      border: 1px solid #555;
+      font-size: 1.5rem;
+      cursor: pointer;
+      outline: none;
+      background: #111;
+      /* Přechod pro plynulejší změnu barev */
+      transition: background 0.2s ease, border 0.2s ease; 
+    }
+    /* Vizuální zvýraznění fokusu - nová třída */
+    td:focus {
+        border: 2px solid #ffeb3b; /* Žlutý rámeček */
+        box-shadow: 0 0 5px #ffeb3b;
+        background: #333; /* Trochu tmavší pozadí pro lepší kontrast */
+    }
+    td.selected {
+      background: #4caf50;
+    }
+    td.found {
+      background: #2196f3;
+    }
+    /* Styl pro nápovědu */
+    td.hint {
+        background: #ff9800; /* Oranžová barva */
+        animation: hintFlash 1s infinite alternate; /* Jemné blikání */
+    }
+    @keyframes hintFlash {
+        from { background-color: #ff9800; }
+        to { background-color: #e65100; }
+    }
+
+    #word-list {
+      margin-top: 1rem;
+    }
+    #word-list span {
+      margin: 0 0.5rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 5px;
+      background: #333;
+    }
+    #word-list .found {
+      background: #4caf50;
+      color: #000;
+      font-weight: bold;
+    }
+    #savedGames {
+      margin-top: 1rem;
+    }
+    /* ARIA live region pro oznámení čtečce obrazovky */
+    .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+</head>
+<body>
+  <h1>Osmisměrka</h1>
+  <p>Pomocí šipek nebo swipování přejíždějte po písmenech. Enterem potvrďte výběr.</p>
+
+  <div>
+    <textarea id="inputWords" rows="4" cols="50" placeholder="Zadejte slova oddělená čárkou..."></textarea><br>
+    <label for="gridSize">Velikost mřížky:</label>
+    <select id="gridSize">
+      <option value="8">8x8</option>
+      <option value="10" selected>10x10</option>
+      <option value="12">12x12</option>
+      <option value="15">15x15</option>
+    </select>
+    <button onclick="generateGrid()">Vytvořit nové kolo</button>
+    <button onclick="shuffleGrid()">Zamíchat mřížku</button> <button onclick="resetCurrentGame()">Resetovat kolo</button> <button onclick="getHint()">Nápověda</button> <button onclick="exportAllGames()">Exportovat všechna kola (JSON)</button>
+    <label>
+      Importovat kola:
+      <input type="file" id="importJson" accept="application/json" onchange="importAllGames(event)">
+    </label>
+  </div>
+
+  <div id="savedGames"></div>
+
+  <table id="grid" role="grid" aria-label="Osmisměrková mřížka"></table>
+  <div id="word-list"></div>
+
+  <div aria-live="polite" aria-atomic="true" class="visually-hidden" id="live-region"></div>
+
+  <script>
+    let grid = []; 
+    let selected = []; 
+    let foundWords = new Set(); 
+    let wordPositions = {}; // Ukládá reference na buňky, které tvoří slovo
+    let words = []; 
+    let size = 10; 
+    let savedGames = []; 
+    let cellContent = []; 
+
+    const table = document.getElementById("grid");
+    const wordListDiv = document.getElementById("word-list");
+    const savedGamesDiv = document.getElementById("savedGames");
+    const liveRegion = document.getElementById("live-region"); // Reference na live region
+
+    // Zvukové efekty pomocí Tone.js
+    // Vytvoření jednoduchých syntezátorů
+    const selectSynth = new Tone.Synth().toDestination();
+    const foundSynth = new Tone.Synth().toDestination();
+    let audioContextStarted = false; // Příznak pro spuštění audio kontextu
+
+    // Funkce pro spuštění audio kontextu na první interakci uživatele
+    function startAudioContext() {
+        if (!audioContextStarted) {
+            Tone.start();
+            audioContextStarted = true;
+            console.log("AudioContext spuštěn.");
+            // Odebere posluchače po spuštění, aby se nevolal opakovaně
+            document.body.removeEventListener('click', startAudioContext);
+            document.body.removeEventListener('keydown', startAudioContext);
+        }
+    }
+
+    // Přidání posluchačů událostí pro spuštění audio kontextu
+    document.body.addEventListener('click', startAudioContext);
+    document.body.addEventListener('keydown', startAudioContext);
+
+
+    /**
+     * Generuje novou mřížku pro osmisměrku.
+     * @param {boolean} fromSaved - True, pokud se generuje z uložené hry, false jinak.
+     * @param {boolean} keepWords - True, pokud se mají zachovat aktuální slova, jinak načíst z inputu.
+     */
+    function generateGrid(fromSaved = false, keepWords = false) {
+      table.innerHTML = ""; 
+      grid = [];
+      selected = [];
+      foundWords = new Set();
+      wordPositions = {};
+      cellContent = []; 
+
+      if (!keepWords) { // Načti slova z inputu, pokud nechceme zachovat stávající
+          if (!fromSaved) {
+              size = parseInt(document.getElementById("gridSize").value);
+              words = document.getElementById("inputWords").value.toUpperCase().split(',').map(w => w.trim()).filter(Boolean);
+              if (words.length === 0) {
+                  words = ["JABLKO", "MOTÝL", "RYBNÍK"]; // Výchozí slova
+                  document.getElementById("inputWords").value = words.join(","); 
+              }
+              savedGames.push({ size, words });
+              updateSavedGames();
+          }
+      } else { // Použij stávající slova a velikost mřížky
+          size = parseInt(document.getElementById("gridSize").value); // Zajisti, že velikost odpovídá selectu
+      }
+
+      for (let y = 0; y < size; y++) {
+        const row = [];
+        const contentRow = []; 
+        const tr = document.createElement("tr");
+        for (let x = 0; x < size; x++) {
+          const td = document.createElement("td");
+          td.setAttribute("tabindex", "0"); 
+          td.dataset.x = x; 
+          td.dataset.y = y;
+          // Přidání ARIA popisku pro čtečku obrazovky
+          td.setAttribute("aria-label", `Řádek ${y + 1}, sloupec ${x + 1}`); 
+          td.addEventListener("keydown", handleKey);
+          td.addEventListener("click", handleClick);
+          tr.appendChild(td);
+          row.push(td);
+          contentRow.push(''); 
+        }
+        table.appendChild(tr);
+        grid.push(row);
+        cellContent.push(contentRow); 
+      }
+
+      placeWords();
+      fillEmptyCells();
+      updateGridDisplay();
+      updateWordList();
+      announceToScreenReader("Nové kolo vygenerováno.");
+    }
+
+    /**
+     * Znovu zamíchá aktuální mřížku se stejnými slovy.
+     */
+    function shuffleGrid() {
+        if (words.length === 0) {
+            announceToScreenReader("Nemám žádná slova k zamíchání. Zadejte slova.");
+            return;
+        }
+        // Zachová aktuální slova a velikost, jen vygeneruje nové rozložení
+        generateGrid(false, true); 
+        announceToScreenReader("Mřížka byla zamíchána.");
+    }
+
+    /**
+     * Resetuje aktuální kolo (zruší výběr a nalezená slova).
+     */
+    function resetCurrentGame() {
+        foundWords = new Set();
+        selected = [];
+        // Odebere třídy 'selected' a 'found' ze všech buněk
+        grid.forEach(row => {
+            row.forEach(cell => {
+                cell.classList.remove("selected", "found", "hint");
+            });
+        });
+        updateWordList();
+        announceToScreenReader("Aktuální kolo resetováno.");
+    }
+
+    /**
+     * Zobrazí nápovědu - zvýrazní první písmeno nenalezeného slova.
+     */
+    function getHint() {
+        const unfoundWords = words.filter(w => !foundWords.has(w));
+        if (unfoundWords.length === 0) {
+            announceToScreenReader("Všechna slova jsou již nalezena. Nápověda není potřeba.");
+            return;
+        }
+
+        // Odstraníme předchozí nápovědu
+        grid.forEach(row => row.forEach(cell => cell.classList.remove("hint")));
+
+        const wordToHint = unfoundWords[Math.floor(Math.random() * unfoundWords.length)];
+        const wordCells = wordPositions[wordToHint];
+
+        if (wordCells && wordCells.length > 0) {
+            const firstCell = wordCells[0];
+            firstCell.classList.add("hint");
+            announceToScreenReader(`Nápověda pro slovo ${wordToHint}. První písmeno je na pozici řádek ${parseInt(firstCell.dataset.y) + 1}, sloupec ${parseInt(firstCell.dataset.x) + 1}.`);
+            
+            // Po 2 sekundách odstraníme nápovědu pro čistotu
+            setTimeout(() => {
+                firstCell.classList.remove("hint");
+            }, 2000); 
+        } else {
+            announceToScreenReader(`Nápověda pro slovo ${wordToHint} není k dispozici.`);
+        }
+    }
+
+
+    /**
+     * Generuje náhodné písmeno (včetně českých znaků).
+     * @returns {string} Náhodné písmeno.
+     */
+    function randomLetter() {
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ";
+      return letters[Math.floor(Math.random() * letters.length)];
+    }
+
+    /**
+     * Pokusí se umístit všechna slova do mřížky.
+     */
+    function placeWords() {
+      const sortedWords = [...words].sort((a, b) => b.length - a.length);
+
+      sortedWords.forEach(word => {
+        let placed = false;
+        let attempts = 0;
+        while (!placed && attempts < 500) { 
+          const dir = Math.floor(Math.random() * 8); 
+          const dx = [1, 1, 0, -1, -1, -1, 0, 1][dir];
+          const dy = [0, 1, 1, 1, 0, -1, -1, -1][dir];
+          const startX = Math.floor(Math.random() * size); 
+          const startY = Math.floor(Math.random() * size);
+          
+          if (canPlace(word, startX, startY, dx, dy)) {
+            actuallyPlaceWord(word, startX, startY, dx, dy); 
+            placed = true;
+          }
+          attempts++;
+        }
+        if (!placed) {
+            console.warn(`Slovo "${word}" se nepodařilo umístit do mřížky. Zkuste menší mřížku nebo méně slov.`);
+        }
+      });
+    }
+
+    /**
+     * Kontroluje, zda lze slovo umístit na dané pozici a ve směru bez kolizí.
+     */
+    function canPlace(word, x, y, dx, dy) {
+      for (let i = 0; i < word.length; i++) {
+        const nx = x + dx * i;
+        const ny = y + dy * i;
+        if (nx < 0 || ny < 0 || nx >= size || ny >= size) return false;
+        
+        if (cellContent[ny][nx] !== '' && cellContent[ny][nx] !== word[i]) {
+            return false; 
+        }
+      }
+      return true;
+    }
+
+    /**
+     * Skutečně umístí slovo do interní mřížky cellContent.
+     */
+    function actuallyPlaceWord(word, x, y, dx, dy) {
+      const pos = [];
+      for (let i = 0; i < word.length; i++) {
+        const ny = y + dy * i;
+        const nx = x + dx * i;
+        cellContent[ny][nx] = word[i]; 
+        pos.push(grid[ny][nx]); 
+      }
+      wordPositions[word] = pos; 
+    }
+
+    /**
+     * Vyplní všechny prázdné buňky v interní mřížce cellContent náhodnými písmeny.
+     */
+    function fillEmptyCells() {
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                if (cellContent[y][x] === '') { 
+                    cellContent[y][x] = randomLetter();
+                }
+            }
+        }
+    }
+
+    /**
+     * Aktualizuje textový obsah HTML <td> elementů na základě interní mřížky cellContent.
+     */
+    function updateGridDisplay() {
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                const cell = grid[y][x];
+                cell.textContent = cellContent[y][x];
+                // Aktualizuj aria-label s aktuálním písmenem
+                cell.setAttribute("aria-label", `Řádek ${y + 1}, sloupec ${x + 1}, písmeno ${cellContent[y][x]}`);
+            }
+        }
+    }
+
+    /**
+     * Zpracovává kliknutí na buňku mřížky.
+     */
+    function handleClick(e) {
+      toggleSelection(e.target);
+    }
+
+    /**
+     * Zpracovává stisknutí klávesy na buňce mřížky.
+     */
+    function handleKey(e) {
+      const td = e.target;
+      const x = parseInt(td.dataset.x);
+      const y = parseInt(td.dataset.y);
+      switch (e.key) {
+        case "ArrowRight": moveFocus(x + 1, y); break;
+        case "ArrowLeft": moveFocus(x - 1, y); break;
+        case "ArrowUp": moveFocus(x, y - 1); break;
+        case "ArrowDown": moveFocus(x, y + 1); break;
+        case "Enter": toggleSelection(td); break;
+        case "Escape": // Přidána klávesa Escape pro zrušení výběru
+            clearSelection();
+            break;
+      }
+    }
+
+    /**
+     * Přesune fokus na buňku s danými souřadnicemi.
+     */
+    function moveFocus(x, y) {
+      if (x >= 0 && x < size && y >= 0 && y < size) {
+        grid[y][x].focus();
+        // Oznámení pro čtečku obrazovky při pohybu fokusem
+        const currentCell = grid[y][x];
+        announceToScreenReader(`Fokus na ${currentCell.getAttribute("aria-label")}`);
+      }
+    }
+
+    /**
+     * Přepíná výběr buňky (přidává/odebírá třídu 'selected').
+     */
+    function toggleSelection(td) {
+      if (td.classList.contains("found")) return; 
+      if (td.classList.contains("selected")) {
+        td.classList.remove("selected");
+        const index = selected.indexOf(td);
+        if (index > -1) selected.splice(index, 1); 
+      } else {
+        td.classList.add("selected");
+        selected.push(td); 
+        // Přehrání zvuku při výběru pomocí Tone.js
+        selectSynth.triggerAttackRelease("C4", "8n"); // Krátký tón C4
+        announceToScreenReader(`Vybráno písmeno ${td.textContent}`); // Oznámení pro čtečku
+      }
+      checkWord(); 
+    }
+
+    /**
+     * Vymaže aktuální výběr.
+     */
+    function clearSelection() {
+        selected.forEach(td => td.classList.remove("selected"));
+        selected = [];
+        announceToScreenReader("Výběr zrušen.");
+    }
+
+
+    /**
+     * Kontroluje, zda aktuálně vybraná písmena tvoří platné slovo.
+     */
+    function checkWord() {
+      const word = selected.map(td => td.textContent).join(""); 
+      if (words.includes(word) && !foundWords.has(word)) { 
+        selected.forEach(td => {
+          td.classList.remove("selected");
+          td.classList.add("found"); 
+        });
+        foundWords.add(word); 
+        // Přehrání zvuku při nalezení slova pomocí Tone.js
+        foundSynth.triggerAttackRelease("G4", "4n"); // Delší tón G4
+        updateWordList(); 
+        announceToScreenReader(`Slovo ${word} nalezeno!`); // Oznámení pro čtečku
+        selected.length = 0; 
+
+        // NOVÁ KONTROLA: Zda jsou všechna slova nalezena
+        if (foundWords.size === words.length) {
+            announceToScreenReader("Gratuluji! Všechna slova nalezena. Kolo dokončeno!");
+        }
+      }
+    }
+
+    /**
+     * Aktualizuje zobrazení seznamu hledaných slov.
+     */
+    function updateWordList() {
+      wordListDiv.innerHTML = words.map(w => `<span class="${foundWords.has(w) ? 'found' : ''}">${w}</span>`).join('');
+    }
+
+    /**
+     * Exportuje všechna uložená kola do JSON souboru.
+     */
+    function exportAllGames() {
+      const blob = new Blob([JSON.stringify(savedGames, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "osmisměrky.json";
+      a.click();
+      announceToScreenReader("Hry exportovány do souboru osmisměrky.json.");
+    }
+
+    /**
+     * Importuje uložená kola z JSON souboru.
+     */
+    function importAllGames(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (Array.isArray(data)) {
+            savedGames = data;
+            updateSavedGames();
+            announceToScreenReader(`Načteno ${data.length} kol.`);
+          } else {
+            console.error("Neplatný formát JSON: Očekávalo se pole.");
+            announceToScreenReader("Chyba při importu: Neplatný formát souboru.");
+          }
+        } catch (err) {
+          console.error("Chyba při načítání JSON: " + err.message);
+          announceToScreenReader("Chyba při importu: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    /**
+     * Aktualizuje seznam uložených her v DOMu.
+     */
+    function updateSavedGames() {
+      savedGamesDiv.innerHTML = "<h3>Uložená kola:</h3>";
+      if (savedGames.length === 0) {
+          savedGamesDiv.innerHTML += "<p>Zatím nemáte žádná uložená kola.</p>";
+          return;
+      }
+      savedGames.forEach((game, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = `Kolo ${index + 1} (${game.size}x${game.size}, ${game.words.length} slov)`;
+        btn.onclick = () => {
+          document.getElementById("inputWords").value = game.words.join(",");
+          document.getElementById("gridSize").value = game.size;
+          size = game.size; 
+          words = game.words; 
+          generateGrid(true); 
+          announceToScreenReader(`Načteno kolo ${index + 1}.`);
+        };
+        savedGamesDiv.appendChild(btn);
+      });
+    }
+
+    /**
+     * Pomocná funkce pro oznámení čtečce obrazovky.
+     * @param {string} message - Zpráva k oznámení.
+     */
+    function announceToScreenReader(message) {
+        liveRegion.textContent = message;
+    }
+
+    // Inicializace mřížky při načtení stránky
+    generateGrid();
+  </script>
+</body>
+</html>

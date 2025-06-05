@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mstudio - Dashboard</title>
+    <!-- Tailwind CSS pro jednoduché a responzivní stylování -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Vlastní styly pro vysoký kontrast a lepší čitelnost */
+        body {
+            /* Černé pozadí */
+            background-color: #000;
+            /* Inter font pro lepší čitelnost */
+            font-family: 'Inter', sans-serif;
+            color: #fff; /* Bílý text pro kontrast */
+        }
+        /* Styly pro odkazy aplikací */
+        .app-link {
+            display: block; /* Každý odkaz na vlastním řádku */
+            padding: 1.5rem 2rem; /* Větší padding pro snadné klikání/tabulování */
+            margin-bottom: 1rem; /* Mezera mezi odkazy */
+            background-color: #1a1a1a; /* Tmavší pozadí pro jednotlivé odkazy */
+            color: #fff; /* Bílý text */
+            text-decoration: none; /* Žádné podtržení */
+            border-radius: 0.75rem; /* Zaoblené rohy */
+            font-size: 1.875rem; /* Velké písmo (text-3xl) */
+            font-weight: 700; /* Tučné písmo (font-bold) */
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out; /* Plynulé přechody */
+            outline: none; /* Skryjeme defaultní outline */
+            border: 2px solid transparent; /* Průhledný rámeček pro focus */
+        }
+        .app-link:hover {
+            background-color: #333; /* Změna barvy při najetí myší */
+            transform: translateY(-2px); /* Jemný posun nahoru */
+        }
+        .app-link:focus {
+            border-color: #facc15; /* Žlutý rámeček při focusu pro přístupnost */
+            box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.5); /* Žlutý stín pro lepší viditelnost focusu */
+        }
+        /* Styly pro nadpisy kategorií */
+        .category-title {
+            font-size: 2.25rem; /* Větší písmo pro nadpisy kategorií (text-4xl) */
+            font-weight: 800; /* Extra tučné */
+            color: #facc15; /* Žlutá barva pro nadpisy kategorií */
+            margin-top: 2.5rem; /* Mezera nad kategorií */
+            margin-bottom: 1.5rem; /* Mezera pod kategorií */
+            border-bottom: 2px solid #333; /* Oddělovací linka */
+            padding-bottom: 0.75rem; /* Padding pod linkou */
+        }
+        /* Responzivní úpravy pro menší obrazovky */
+        @media (max-width: 768px) {
+            .app-link {
+                font-size: 1.5rem; /* Menší písmo na mobilu */
+                padding: 1rem 1.5rem;
+            }
+            .category-title {
+                font-size: 2rem; /* Menší písmo pro nadpisy kategorií na mobilu */
+            }
+            .container {
+                padding: 1rem; /* Menší padding kontejneru na mobilu */
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-6 max-w-4xl">
+        <!-- Hlavní nadpis projektu -->
+        <h1 class="text-5xl font-extrabold text-center text-yellow-300 mb-6 mt-8">Mstudio</h1>
+
+        <!-- Úvodní popis a instrukce -->
+        <p class="text-lg text-gray-300 text-center mb-12 leading-relaxed">
+            Vítejte v **Mstudio**, vašem balíčku aplikací a nástrojů pro efektivní správu masérny.
+            Naleznete zde sadu jednoduchých a přístupných aplikací navržených pro usnadnění vaší každodenní práce s daty.
+            <br><br>
+            Tento systém vznikl z potřeby vytvořit intuitivní a funkční řešení, které by překonalo omezení běžných programů a CRM systémů. Společně s umělou inteligencí jsem vyvinul těchto 16 aplikací, které jsou šité na míru specifickým potřebám masérů. Možná si na ně budete chvilku zvykat, ale věřím, že jejich jednoduchost a přístupnost brzy oceníte.
+            <br><br>
+            Vaše návrhy na vylepšení, připomínky či konstruktivní kritika jsou vítány. Neváhejte mě kontaktovat na emailu: <a href="mailto:Simek.jan1@gmail.com" class="text-yellow-300 hover:underline">Simek.jan1@gmail.com</a>.
+        </p>
+
+        <!-- Jak používat dashboard instrukce -->
+        <p class="text-lg text-gray-300 text-center mb-12 leading-relaxed">
+            <strong class="text-yellow-300">Jak používat dashboard:</strong>
+            <br>
+            Pro navigaci použijte klávesu <kbd class="bg-gray-700 text-white px-2 py-1 rounded-md text-sm">Tab</kbd> pro přesun mezi kategoriemi a aplikacemi.
+            Stiskněte <kbd class="bg-gray-700 text-white px-2 py-1 rounded-md text-sm">Enter</kbd> pro spuštění vybrané aplikace.
+            Pro rychlý skok na začátek další kategorie použijte klávesu <kbd class="bg-gray-700 text-white px-2 py-1 rounded-md text-sm">H</kbd> (pro nadpisy).
+        </p>
+
+        <!-- NOVÁ KATEGORIE: 1. Návody -->
+        <section aria-labelledby="navody-heading">
+            <h2 id="navody-heading" class="category-title">1. Návody</h2>
+            <div class="space-y-4">
+                <a href="Aplikace/1. Návody/01. navod-k-pouziti.html" target="_blank" class="app-link">01. Kompletní návod k použití</a>
+                <a href="Aplikace/1. Návody/02. navod-pridavani-aplikace.html" target="_blank" class="app-link">02. Návod pro přidávání aplikací</a>
+            </div>
+        </section>
+
+        <!-- Původní kategorie Klienti, nyní 2. Klienti -->
+        <section aria-labelledby="klienti-heading">
+            <h2 id="klienti-heading" class="category-title">2. Klienti</h2>
+            <div class="space-y-4">
+                <a href="Aplikace/2. Klienti/01. klienti.html" class="app-link">01. Klienti</a>
+                <a href="Aplikace/2. Klienti/02. cenik.html" class="app-link">02. Ceník</a>
+                <a href="Aplikace/2. Klienti/03. tabulky.html" class="app-link">03. Tabulky</a>
+                <a href="Aplikace/2. Klienti/04. casovac.html" class="app-link">04. Časovač</a>
+            </div>
+        </section>
+
+        <!-- Původní kategorie Účetnictví, nyní 3. Účetnictví -->
+        <section aria-labelledby="ucetnictvi-heading">
+            <h2 id="ucetnictvi-heading" class="category-title">3. Účetnictví</h2>
+            <div class="space-y-4">
+                <a href="Aplikace/3. Účetnictví/01. ucetnictvi.html" class="app-link">01. Účetnictví</a>
+                <a href="Aplikace/3. Účetnictví/02. poukazy.html" class="app-link">02. Poukazy</a>
+                <a href="Aplikace/3. Účetnictví/03. vernostni_program.html" class="app-link">03. Věrnostní program</a>
+                <a href="Aplikace/3. Účetnictví/04. sklad.html" class="app-link">04. Sklad</a>
+            </div>
+        </section>
+
+        <!-- Původní kategorie Poznámky, nyní 4. Poznámky -->
+        <section aria-labelledby="poznamky-heading">
+            <h2 id="poznamky-heading" class="category-title">4. Poznámky</h2>
+            <div class="space-y-4">
+                <a href="Aplikace/4. Poznámky/01. poznamky.html" class="app-link">01. Poznámky</a>
+                <a href="Aplikace/4. Poznámky/02. todolist.html" class="app-link">02. To-Do List</a>
+                <a href="Aplikace/4. Poznámky/03. planovac.html" class="app-link">03. Plánovač</a>
+                <a href="Aplikace/4. Poznámky/04. napady.html" class="app-link">04. Nápady</a>
+            </div>
+        </section>
+
+        <!-- Původní kategorie Osobní, nyní 5. Osobní -->
+        <section aria-labelledby="osobni-heading">
+            <h2 id="osobni-heading" class="category-title">5. Osobní</h2>
+            <div class="space-y-4">
+                <a href="Aplikace/5. Osobní/01. knihovna.html" class="app-link">01. Knihovna</a>
+                <a href="Aplikace/5. Osobní/02. osmismerky.html" class="app-link">02. Osmisměrky</a>
+            </div>
+        </section>
+
+        <!-- Původní kategorie Generátory, nyní 6. Generátory -->
+        <section aria-labelledby="generatory-heading" class="mb-12">
+            <h2 id="generatory-heading" class="category-title">6. Generátory</h2>
+            <div class="space-y-4">
+                <a href="Aplikace/6. Generátory/01. qrcode.html" class="app-link">01. QR Code Generátor</a>
+                <a href="Aplikace/6. Generátory/02. generator-dp.html" class="app-link">02. Generátor dárkových poukazů</a>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Všechny JavaScriptové funkce pro rozbalování návodů jsou nyní odstraněny,
+        // protože návody jsou v samostatných HTML souborech a otevírají se přímo.
+        // Tlačítka jsou nyní přímé odkazy.
+        // Není zde žádný JavaScript pro ovládání viditelnosti obsahu.
+    </script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Správce audioknih</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #000; color: #fff; }
+    table { border-collapse: collapse; width: 100%; background: #111; color: #fff; }
+    th, td { border: 1px solid #555; padding: 0.5rem; text-align: center; }
+    th { background: #222; }
+    button { padding: 0.5rem; margin: 0.2rem; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
+    .add { background-color: #4caf50; color: #fff; }
+    .edit { background-color: #2196f3; color: #fff; }
+    .remove { background-color: #f44336; color: #fff; }
+    .export { background-color: #ff9800; color: #000; }
+    .export-txt { background-color: #ffc107; color: #000; }
+    .form-section, .filter { margin: 1rem 0; }
+    input[type="text"] { padding: 0.5rem; width: 200px; margin: 0.2rem; }
+    .hidden { display: none; }
+    .book-details { background-color: #222; margin-top: 0.5rem; padding: 0.5rem; border-radius: 5px; }
+    .detail-entry { margin-bottom: 0.5rem; }
+    .overlay, .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+    .overlay { background: rgba(0, 0, 0, 0.5); z-index: 999; }
+    .modal { z-index: 1000; background: #111; border: 2px solid #555; padding: 1rem; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 10px; color: #fff; }
+    .modal input { display: block; margin: 0.5rem 0; width: 95%; padding: 0.4rem; }
+  </style>
+</head>
+<body>
+  <h1>Správce audioknih</h1>
+
+  <div class="form-section">
+    <button onclick="exportBooks()">Exportovat JSON</button>
+    <label>
+      Importovat JSON:
+      <input type="file" onchange="importBooks(event)" />
+    </label>
+  </div>
+
+  <div class="form-section">
+    <h3>Přidat knihu / audioknihu</h3>
+    <input type="text" id="title" placeholder="Název" />
+    <input type="text" id="author" placeholder="Autor" />
+    <input type="text" id="narrator" placeholder="Interpret" />
+    <button onclick="addBook()">Přidat</button>
+  </div>
+
+  <div class="filter">
+    <input type="text" id="filterInput" placeholder="Vyhledat podle názvu, autora nebo interpreta..." oninput="updateTable()" />
+    <button onclick="clearFilter()">Zrušit filtr</button>
+  </div>
+
+  <table id="bookTable">
+    <thead>
+      <tr>
+        <th>Název</th>
+        <th>Autor</th>
+        <th>Interpret</th>
+        <th>Oblíbená</th>
+        <th>Akce</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="modal"></div>
+
+  <script>
+    let books = [];
+
+    function showModal(html) {
+      const modal = document.getElementById("modal");
+      const overlay = document.getElementById("overlay");
+      modal.innerHTML = html;
+      modal.style.display = "block";
+      overlay.style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("overlay").style.display = "none";
+    }
+
+    function addBook() {
+      const title = document.getElementById('title').value.trim();
+      const author = document.getElementById('author').value.trim();
+      const narrator = document.getElementById('narrator').value.trim();
+      if (!title && !author && !narrator) return;
+      books.push({ title, author, narrator, favorite: false, annotation: '', note: '' });
+      document.getElementById('title').value = '';
+      document.getElementById('author').value = '';
+      document.getElementById('narrator').value = '';
+      updateTable();
+    }
+
+    function editDetails(index) {
+      const b = books[index];
+      showModal(`
+        <h3>Upravit audioknihu</h3>
+        <input id="editTitle" value="${b.title}" placeholder="Název" />
+        <input id="editAuthor" value="${b.author}" placeholder="Autor" />
+        <input id="editNarrator" value="${b.narrator}" placeholder="Interpret" />
+        <button onclick="submitEdit(${index})">Uložit</button>
+        <button onclick="closeModal()">Zrušit</button>
+      `);
+    }
+
+    function submitEdit(index) {
+      books[index].title = document.getElementById("editTitle").value;
+      books[index].author = document.getElementById("editAuthor").value;
+      books[index].narrator = document.getElementById("editNarrator").value;
+      closeModal();
+      updateTable();
+    }
+
+    function updateTable() {
+      const tbody = document.querySelector('#bookTable tbody');
+      tbody.innerHTML = '';
+      const filter = document.getElementById('filterInput').value.toLowerCase();
+
+      const sortedBooks = [...books].sort((a, b) => {
+        const authorA = a.author.toLowerCase();
+        const authorB = b.author.toLowerCase();
+        if (authorA < authorB) return -1;
+        if (authorA > authorB) return 1;
+        return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
+      });
+
+      sortedBooks.forEach((b, realIndex) => {
+        const index = books.indexOf(b);
+        if ([b.title, b.author, b.narrator].some(f => f.toLowerCase().includes(filter))) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td><button onclick="toggleDetails(${index})">${b.title || 'Bez názvu'}</button></td>
+            <td>${b.author}</td>
+            <td>${b.narrator}</td>
+            <td><input type="checkbox" ${b.favorite ? 'checked' : ''} onchange="toggleFavorite(${index})" /></td>
+            <td>
+              <button class="edit" onclick="editDetails(${index})">Upravit</button>
+              <button class="remove" onclick="deleteBook(${index})">Smazat</button>
+              <button class="export-txt" onclick="exportBookToTxt(${index})">Export TXT</button>
+            </td>`;
+          tbody.appendChild(row);
+
+          const detailRow = document.createElement('tr');
+          detailRow.className = 'hidden';
+          detailRow.id = `details-${index}`;
+          detailRow.innerHTML = `<td colspan="5"><div class="book-details">
+            <div class="detail-entry"><strong>Anotace:</strong> ${b.annotation || '---'}</div>
+            <div class="detail-entry"><strong>Poznámka:</strong> ${b.note || '---'}</div>
+            <button onclick="addAnnotation(${index})">Přidat/Upravit anotaci</button>
+            <button onclick="addNote(${index})">Přidat/Upravit poznámku</button>
+          </div></td>`;
+          tbody.appendChild(detailRow);
+        }
+      });
+    }
+
+    function toggleFavorite(index) {
+      books[index].favorite = !books[index].favorite;
+      updateTable();
+    }
+
+    function toggleDetails(index) {
+      const row = document.getElementById(`details-${index}`);
+      if (row) row.classList.toggle('hidden');
+    }
+
+    function addAnnotation(index) {
+      const b = books[index];
+      showModal(`
+        <h3>Anotace</h3>
+        <textarea id="annotationText" rows="5" style="width: 95%;">${b.annotation}</textarea><br>
+        <button onclick="submitAnnotation(${index})">Uložit</button>
+        <button onclick="closeModal()">Zrušit</button>
+      `);
+    }
+
+    function submitAnnotation(index) {
+      books[index].annotation = document.getElementById("annotationText").value;
+      closeModal();
+      updateTable();
+    }
+
+    function addNote(index) {
+      const b = books[index];
+      showModal(`
+        <h3>Poznámka</h3>
+        <textarea id="noteText" rows="5" style="width: 95%;">${b.note}</textarea><br>
+        <button onclick="submitNote(${index})">Uložit</button>
+        <button onclick="closeModal()">Zrušit</button>
+      `);
+    }
+
+    function submitNote(index) {
+      books[index].note = document.getElementById("noteText").value;
+      closeModal();
+      updateTable();
+    }
+
+    function deleteBook(index) {
+      books.splice(index, 1);
+      updateTable();
+    }
+
+    function exportBooks() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(books));
+      const dl = document.createElement('a');
+      dl.setAttribute("href", dataStr);
+      dl.setAttribute("download", "audioknihy.json");
+      dl.click();
+    }
+
+    function importBooks(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = e => {
+        books = JSON.parse(e.target.result);
+        updateTable();
+      };
+      reader.readAsText(file);
+    }
+
+    function exportBookToTxt(index) {
+      const b = books[index];
+      let content = `--- Audiokniha ---\n`;
+      content += `Název: ${b.title}\nAutor: ${b.author}\nInterpret: ${b.narrator}\nOblíbená: ${b.favorite ? 'Ano' : 'Ne'}\n\n`;
+      content += `--- Anotace ---\n${b.annotation || '---'}\n\n`;
+      content += `--- Poznámka ---\n${b.note || '---'}\n`;
+      const dataStr = "data:text/plain;charset=utf-8," + encodeURIComponent(content);
+      const dl = document.createElement('a');
+      dl.setAttribute("href", dataStr);
+      dl.setAttribute("download", `${b.title.replace(/\s/g, '_')}_detaily.txt`);
+      dl.click();
+    }
+
+    function clearFilter() {
+      document.getElementById('filterInput').value = '';
+      updateTable();
+    }
+  </script>
+</body>
+</html>

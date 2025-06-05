@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nápady a inspirace</title>
+  <style>
+    body { font-family: sans-serif;
+padding: 2rem; background: #000; color: #fff; }
+    table { border-collapse: collapse; width: 100%; background: #111; color: #fff;
+}
+    th, td { border: 1px solid #555; padding: 0.5rem; text-align: center;
+}
+    th { background: #222; }
+    button { padding: 0.5rem; margin: 0.2rem; border: none;
+font-weight: bold; cursor: pointer; border-radius: 5px; }
+    .add { background-color: #4caf50; color: #fff;
+}
+    .edit { background-color: #2196f3; color: #fff; }
+    .remove { background-color: #f44336; color: #fff;
+}
+    .export { background-color: #ff9800; color: #000; }
+    .export-txt { background-color: #ffc107; color: #000;
+}
+    .form-section, .filter { margin: 1rem 0;
+}
+    input[type="text"], textarea, select { padding: 0.5rem; width: 100%; margin: 0.2rem;
+}
+    textarea { height: 150px; }
+    .hidden { display: none; }
+    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111;
+border: 2px solid #555; padding: 1rem; z-index: 1000; border-radius: 10px; display: none;
+}
+    .modal input, .modal textarea, .modal select { margin: 0.2rem; width: 90%; }
+    .overlay { position: fixed;
+top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; z-index: 999;
+}
+  </style>
+</head>
+<body>
+  <h1>Nápady a inspirace</h1>
+
+  <div class="form-section">
+    <button onclick="exportIdeas()">Exportovat JSON</button>
+    <label>
+      Importovat JSON:
+      <input type="file" onchange="importIdeas(event)" />
+    </label>
+  </div>
+
+  <div class="form-section">
+    <h3>Přidat nový nápad</h3>
+    <input type="text" id="ideaTitle" placeholder="Název nápadu" />
+    <textarea id="ideaDescription" placeholder="Popis nápadu / detailní poznámky"></textarea>
+    <select id="ideaCategory">
+        <option value="Obecné">Obecné</option>
+        <option value="Marketing">Marketing</option>
+        <option value="Služby">Nové služby</option>
+        <option value="Studio">Vylepšení studia</option>
+        <option value="AI">AI a technologie</option>
+        <option value="Ostatní">Ostatní</option>
+    </select>
+    <button onclick="addIdea()">Přidat nápad</button>
+  </div>
+
+  <div class="filter">
+    <input type="text" id="filterInput" placeholder="Filtruj nápady..." oninput="updateTable()" />
+    <button onclick="clearFilter()">Zrušit filtr</button>
+  </div>
+
+  <table id="ideasTable">
+    <thead>
+      <tr>
+        <th>Název nápadu</th>
+        <th>Kategorie</th>
+        <th>Akce</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="editModal"></div>
+
+  <script>
+    let ideas = [];
+
+    function showModal(contentHTML) {
+      const overlay = document.getElementById('overlay');
+      const modal = document.getElementById('editModal');
+      modal.innerHTML = contentHTML;
+      overlay.style.display = 'block';
+      modal.style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function addIdea() {
+      const title = document.getElementById('ideaTitle').value.trim();
+      const description = document.getElementById('ideaDescription').value.trim();
+      const category = document.getElementById('ideaCategory').value;
+
+      if (!title || !description) {
+        alert('Prosím, vyplňte název i popis nápadu.');
+        return;
+      }
+
+      ideas.push({
+        title: title,
+        description: description,
+        category: category
+      });
+
+      document.getElementById('ideaTitle').value = '';
+      document.getElementById('ideaDescription').value = '';
+      document.getElementById('ideaCategory').value = 'Obecné'; // Reset na výchozí
+
+      updateTable();
+    }
+
+    // Zobrazí celý nápad v modálním okně
+    function viewIdea(index) {
+      const idea = ideas[index];
+      showModal(`
+        <h3>${idea.title} (${idea.category})</h3>
+        <p>${idea.description.replace(/\n/g, '<br>')}</p>
+        <button onclick="closeModal()">Zavřít</button>
+      `);
+    }
+
+    function editIdea(index) {
+      const idea = ideas[index];
+      showModal(`
+        <h3>Upravit nápad</h3>
+        <input type="text" id="editIdeaTitle" value="${idea.title}" placeholder="Název nápadu" /><br>
+        <textarea id="editIdeaDescription" placeholder="Popis nápadu / detailní poznámky">${idea.description}</textarea><br>
+        <select id="editIdeaCategory">
+            <option value="Obecné" ${idea.category === 'Obecné' ? 'selected' : ''}>Obecné</option>
+            <option value="Marketing" ${idea.category === 'Marketing' ? 'selected' : ''}>Marketing</option>
+            <option value="Služby" ${idea.category === 'Služby' ? 'selected' : ''}>Nové služby</option>
+            <option value="Studio" ${idea.category === 'Studio' ? 'selected' : ''}>Vylepšení studia</option>
+            <option value="AI" ${idea.category === 'AI' ? 'selected' : ''}>AI a technologie</option>
+            <option value="Ostatní" ${idea.category === 'Ostatní' ? 'selected' : ''}>Ostatní</option>
+        </select><br>
+        <button onclick="submitEditIdea(${index})">Uložit</button>
+        <button onclick="closeModal()">Zrušit</button>
+      `);
+    }
+
+    function submitEditIdea(index) {
+      const idea = ideas[index];
+      idea.title = document.getElementById('editIdeaTitle').value.trim();
+      idea.description = document.getElementById('editIdeaDescription').value.trim();
+      idea.category = document.getElementById('editIdeaCategory').value;
+      closeModal();
+      updateTable();
+    }
+
+    function deleteIdea(index) {
+      if (confirm('Opravdu chcete odstranit tento nápad?')) {
+        ideas.splice(index, 1);
+        updateTable();
+      }
+    }
+
+    function updateTable() {
+      const tbody = document.querySelector('#ideasTable tbody');
+      tbody.innerHTML = '';
+      const filter = document.getElementById('filterInput').value.toLowerCase();
+
+      ideas.forEach((idea, index) => {
+        // Filtr podle názvu, popisu nebo kategorie
+        if (idea.title.toLowerCase().includes(filter) ||
+            idea.description.toLowerCase().includes(filter) ||
+            idea.category.toLowerCase().includes(filter)) {
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td><a href="#" onclick="viewIdea(${index})">${idea.title}</a></td>
+            <td>${idea.category}</td>
+            <td>
+              <button class="edit" onclick="editIdea(${index})">Upravit</button>
+              <button class="remove" onclick="deleteIdea(${index})">Smazat</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        }
+      });
+    }
+
+    function clearFilter() {
+      document.getElementById('filterInput').value = '';
+      updateTable();
+    }
+
+    function exportIdeas() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(ideas));
+      const dl = document.createElement('a');
+      dl.setAttribute("href", dataStr);
+      dl.setAttribute("download", "napady.json");
+      dl.click();
+    }
+
+    function importIdeas(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (Array.isArray(importedData) && importedData.every(item => 'title' in item && 'description' in item && 'category' in item)) {
+            ideas = importedData;
+            updateTable();
+            alert('Nápady byly úspěšně importovány!');
+          } else {
+            alert('Chyba: Importovaný soubor nemá očekávaný formát pro nápady.');
+          }
+        } catch (e) {
+          alert('Chyba při čtení JSON souboru: ' + e.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    updateTable(); // Zobrazí tabulku při načtení
+  </script>
+</body>
+</html>
