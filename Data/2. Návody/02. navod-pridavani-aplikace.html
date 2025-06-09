@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mstudio - Návod pro přidávání aplikací</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000;
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 4xl;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #1a1a1a;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3, h4 {
+            color: #facc15;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; border-bottom: 1px solid #555; padding-bottom: 0.5rem; }
+        h3 { font-size: 1.75rem; }
+        h4 { font-size: 1.5rem; }
+        ul { list-style-type: disc; margin-left: 1.5rem; }
+        ol { list-style-type: decimal; margin-left: 1.5rem; }
+        li { margin-bottom: 0.5rem; }
+        p { margin-bottom: 1rem; }
+        strong { color: #fff; }
+        a { color: #8d8dff; text-decoration: underline; }
+        a:hover { color: #b3b3ff; }
+        kbd {
+            background-color: #2a2a2a;
+            color: #eee;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.3rem;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        .warning-text {
+            color: #FFD700;
+            font-weight: bold;
+            font-size: 1.5em;
+            display: block;
+            margin-bottom: 1rem;
+        }
+        pre {
+            background-color: #1c1c1c;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        code {
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.9em;
+            color: #8d8dff;
+        }
+        .back-link {
+            display: inline-block;
+            background-color: #4a4a4a;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            transition: background-color 0.2s ease;
+        }
+        .back-link:hover {
+            background-color: #6a6a6a;
+        }
+        .back-link:focus {
+            outline: 2px solid #facc15;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container">
+        <!-- Odkaz zpět na Dashboard - Upravená cesta -->
+        <a href="../../index.html" class="back-link" aria-label="Zpět na hlavní dashboard Mstudio">← Zpět na Dashboard</a>
+
+        <h1>Návod pro přidávání nových aplikací do Mstudio Dashboardu</h1>
+
+        <span class="warning-text"># Pozor! # Tohle je velice důležité.</span>
+        <span class="warning-text">Před jakoukoliv úpravou kódu si soubor nejprve zálohujte. Předejdete tak případným nepříjemnostem.</span>
+
+        <p>Pokud si s kódem nevíte rady, tak se obraťte na někoho zkušenějšího. Druhá varianta je, nechat to udělat umělé inteligenci. Použijte Gemini, ChatGPT, nebo co používáte. Vložte mu kompletní kód dashboardu. Sdělte mu, co chcete přidat, a on vám to tam přidá. Pak to jen uložte do textového souboru. **Důležité: Soubor neukládejte jako `.txt`, ale jako `.html`.**</p>
+
+        <p>Tento průvodce vám ukáže, jak snadno přidat novou aplikaci do vašeho **Mstudio** dashboardu. Vzhledem k tomu, že dashboard je postaven na jednoduchém HTML, budeme provádět drobné úpravy přímo v jeho kódu. Nebojte se, je to jednodušší, než se zdá!</p>
+
+        <h2>Co budete potřebovat?</h2>
+
+        <ul>
+            <li>**Soubor `index.html` (váš dashboard):** Nachází se v hlavní složce `Mstudio`.</li>
+            <li>**Textový editor:** Jakýkoli jednoduchý textový editor (např. Poznámkový blok ve Windows, Notepad++, VS Code, nebo jiný, který používáte a který vám vyhovuje pro práci s textem).</li>
+        </ul>
+
+        <h2>Krok za krokem: Přidání nové aplikace</h2>
+
+        <h3>1. Otevřete soubor dashboardu</h3>
+
+        <ol>
+            <li>Přejděte do hlavní složky `Mstudio` na vašem počítači.</li>
+            <li>Najděte soubor s názvem `index.html`.</li>
+            <li>**Klikněte na něj pravým tlačítkem myši** (nebo použijte kontextovou klávesu) a vyberte možnost **"Otevřít v programu"** a poté zvolte váš **textový editor** (např. "Poznámkový blok").
+                <ul>
+                    <li>**Důležité:** Neotvírejte ho v prohlížeči, ale v textovém editoru, abyste mohli upravit jeho kód.</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>2. Najděte správné místo pro nový odkaz</h3>
+
+        <p>Kód dashboardu je rozdělen do sekcí pro jednotlivé kategorie v `Data/1. Aplikace/`.</p>
+
+        <pre><code>
+&lt;!-- Sekce 2. Aplikace --&gt;
+&lt;section aria-labelledby="aplikace-heading" class="mb-8"&gt;
+    &lt;h2 id="aplikace-heading"&gt;2. Aplikace&lt;/h2&gt;
+    &lt;div class="space-y-4"&gt;
+        &lt;a href="Data/1. Aplikace/01. maserna.html" class="app-link"&gt;01. Masérna&lt;/a&gt;
+        &lt;a href="Data/1. Aplikace/02. financni-spravce.html" class="app-link"&gt;02. Finanční správce&lt;/a&gt;
+        &lt;a href="Data/1. Aplikace/03. zaznamnik.html" class="app-link"&gt;03. Záznamník&lt;/a&gt;
+        &lt;a href="Data/1. Aplikace/04. generator.html" class="app-link"&gt;04. Generátor poukazů a QR kódů&lt;/a&gt;
+        &lt;!-- Zde byste přidali nový odkaz na aplikaci --&gt;
+    &lt;/div&gt;
+&lt;/section&gt;
+        </code></pre>
+
+        <ul>
+            <li>**Rozhodněte se, kam chcete aplikaci přidat:**
+                <ul>
+                    <li>Chcete přidat novou aplikaci do sekce **"2. Aplikace"**? Najděte v kódu `index.html` sekci `<h2 id="aplikace-heading">2. Aplikace</h2>` a přidejte odkaz do `div` elementu s `class="space-y-4"` uvnitř této sekce.</li>
+                    <li>Chcete vytvořit **zcela novou kategorii aplikací** (např. pro osobní zábavné nástroje)? Zkopírujte si celou jednu `section` (od `<section>` do `</section>`) z existující kategorie, vložte ji na konec `div.container` (před uzavírací `</div>` tag), a poté upravte její nadpis `<h2>`, `id` a `aria-labelledby`, a také cesty k souborům uvnitř.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>3. Vytvořte nový odkaz na aplikaci</h3>
+
+        <p>Každý odkaz na aplikaci je reprezentován HTML tagem `<a>` (anchor) a vypadá takto:</p>
+
+        <pre><code>
+&lt;a href="Data/1. Aplikace/01. maserna.html" class="app-link"&gt;01. Masérna&lt;/a&gt;
+        </code></pre>
+
+        <p>**Pro přidání nového odkazu postupujte takto:**</p>
+
+        <ol>
+            <li>V textovém editoru najděte `div` s `class="space-y-4"` uvnitř vybrané `section`.</li>
+            <li>Na nový řádek **uvnitř** tohoto `div` vložte nový `<a>` tag.</li>
+            <li>**Upravte následující části:**
+                <ul>
+                    <li>`href="Data/1. Aplikace/VAŠE_NOVÁ_APLIKACE.html"`: Toto je **nejdůležitější část**. Musíte zde zadat **správnou cestu k vaší nové HTML aplikaci** uvnitř složky `Data/1. Aplikace/`.
+                        <ul>
+                            <li>**Příklad:** Pokud máte novou aplikaci `Data/1. Aplikace/05. muj-test.html`, cesta bude `Data/1. Aplikace/05. muj-test.html`.</li>
+                            <li>**Důležité:** Cesta je **relativní** k místu, kde máte uložený soubor `index.html`. Ujistěte se, že používáte správné názvy složek a souborů (včetně velkých/malých písmen, pokud je váš systém na to citlivý, i když Windows obvykle není, je dobré být konzistentní).</li>
+                        </ul>
+                    </li>
+                    <li>`class="app-link"`: Tuto část **neměňte**. Zajišťuje, že odkaz bude mít stejný vzhled a přístupnost jako ostatní aplikace na dashboardu.</li>
+                    <li>`>Zde bude název aplikace<`: Text mezi `>` a `<` je to, co se zobrazí na dashboardu. Zde zadejte **název, který chcete, aby se zobrazil uživateli** (např. `05. Moje nová aplikace`). Doporučuje se pokračovat v číslování pro přehlednost.</li>
+                </ul>
+            </li>
+        </ol>
+
+        <p>**Příklad přidání nové aplikace "05. Můj test" do kategorie "2. Aplikace":**</p>
+
+        <pre><code>
+&lt;!-- Sekce 2. Aplikace --&gt;
+&lt;section aria-labelledby="aplikace-heading" class="mb-8"&gt;
+    &lt;h2 id="aplikace-heading"&gt;2. Aplikace&lt;/h2&gt;
+    &lt;div class="space-y-4"&gt;
+        &lt;a href="Data/1. Aplikace/01. maserna.html" class="app-link"&gt;01. Masérna&lt;/a&gt;
+        &lt;a href="Data/1. Aplikace/02. financni-spravce.html" class="app-link"&gt;02. Finanční správce&lt;/a&gt;
+        &lt;a href="Data/1. Aplikace/03. zaznamnik.html" class="app-link"&gt;03. Záznamník&lt;/a&gt;
+        &lt;a href="Data/1. Aplikace/04. generator.html" class="app-link"&gt;04. Generátor poukazů a QR kódů&lt;/a&gt;
+        &lt;!-- Nový odkaz přidaný zde --&gt;
+        &lt;a href="Data/1. Aplikace/05. muj-test.html" class="app-link"&gt;05. Můj test&lt;/a&gt;
+    &lt;/div&gt;
+&lt;/section&gt;
+        </code></pre>
+
+        <h3>4. Uložte změny</h3>
+
+        <ol>
+            <li>Po přidání nového odkazu **uložte soubor `index.html`**. V textovém editoru to obvykle uděláte přes `Soubor` -> `Uložit` (nebo `Ctrl+S`).</li>
+        </ol>
+
+        <h3>5. Otestujte novou aplikaci</h3>
+
+        <ol>
+            <li>Otevřete soubor `index.html` v prohlížeči (poklepáním na něj).</li>
+            <li>Zkontrolujte, zda se nový odkaz objevil na dashboardu.</li>
+            <li>Klikněte na nový odkaz (nebo na něj přejděte klávesou `Tab` a stiskněte `Enter`), abyste se ujistili, že se nová aplikace správně spustí.</li>
+        </ol>
+
+        <h2>Tipy pro přístupnost a organizaci</h2>
+
+        <ul>
+            <li>**Konzistence v číslování:** Vždy pokračujte v číslování aplikací v dané kategorii (např. `05. muj-test.html`), aby byl seznam přehledný.</li>
+            <li>**Jasné názvy:** Používejte popisné názvy pro soubory i pro text odkazu na dashboardu.</li>
+            <li>**Testování:** Vždy otestujte nově přidaný odkaz, a to jak myší, tak klávesnicí a pokud možno i se čtečkou obrazovky, abyste si byli jisti, že je vše přístupné.</li>
+        </ul>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mstudio - Kompletní Návod k Použití</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000;
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 4xl;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #1a1a1a;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3, h4 {
+            color: #facc15;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; border-bottom: 1px solid #555; padding-bottom: 0.5rem; }
+        h3 { font-size: 1.75rem; }
+        h4 { font-size: 1.5rem; }
+        ul { list-style-type: disc; margin-left: 1.5rem; }
+        ol { list-style-type: decimal; margin-left: 1.5rem; }
+        li { margin-bottom: 0.5rem; }
+        p { margin-bottom: 1rem; }
+        strong { color: #fff; }
+        a { color: #8d8dff; text-decoration: underline; }
+        a:hover { color: #b3b3ff; }
+        kbd {
+            background-color: #2a2a2a;
+            color: #eee;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.3rem;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        .back-link {
+            display: inline-block;
+            background-color: #4a4a4a;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            transition: background-color 0.2s ease;
+        }
+        .back-link:hover {
+            background-color: #6a6a6a;
+        }
+        .back-link:focus {
+            outline: 2px solid #facc15;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container">
+        <!-- Odkaz zpět na Dashboard - Upravená cesta -->
+        <a href="../../index.html" class="back-link" aria-label="Zpět na hlavní dashboard Mstudio">← Zpět na Dashboard</a>
+
+        <h1>Návod k aplikacím Mstudio</h1>
+
+        <p>Vítejte v podrobném, ale jednoduchém návodu k používání aplikací v balíčku **Mstudio**. Tento průvodce vám pomůže zorientovat se ve všech nástrojích, které jsem si s pomocí umělé inteligence vytvořil, a využít je naplno pro správu vaší masérny.</p>
+
+        <p>Všechny aplikace jsou navrženy s důrazem na **jednoduchost, přehlednost a přístupnost**, zejména pro ovládání klávesnicí a pro práci se čtečkami obrazovky.</p>
+
+        <h2>Jak je návod strukturován?</h2>
+
+        <p>Návod je rozdělen podle kategorií v Dashboardu a každá aplikace má svou vlastní sekci.</p>
+
+        <h3>Kategorie: 1. Návody</h3>
+        <h4>1.1. Kompletní návod k použití (`Data/2. Návody/01. navod-k-pouziti.html`)</h4>
+        <p>Právě čtete tento návod. Obsahuje komplexní popis všech aplikací Mstudia a jejich použití.</p>
+
+        <h4>1.2. Návod pro přidávání aplikací (`Data/2. Návody/02. navod-pridavani-aplikace.html`)</h4>
+        <p>Tato stránka poskytuje detailní instrukce, jak manuálně přidat nové aplikace do Mstudio Dashboardu a udržet tak váš systém aktuální.</p>
+
+        <h3>Kategorie: 2. Aplikace</h3>
+
+        <h4>2.1. Masérna (`Data/1. Aplikace/01. maserna.html`)</h4>
+        <p>Komplexní aplikace pro správu klientů, masáží, ceníku a dárkových poukazů. Nahrazuje původní aplikace Klienti, Ceník masáží, Tabulky - Historie masáží a Správa dárkových poukazů.</p>
+        <ul>
+            <li>**Účel:** Centrální správa všech klientských dat, včetně historie masáží, ceníku a poukazů.</li>
+            <li>**Hlavní sekce:** Obsahuje rozbalovací sekce pro:
+                <ul>
+                    <li>**Správa klientů:** Přidávání, úpravy, mazání klientů. Kliknutím na jméno klienta se rozbalí detaily: absolvované masáže, dárkové poukazy a poznámky k danému klientovi.</li>
+                    <li>**Ceník masáží:** Správa položek ceníku s délkou, cenou, počtem a celkovou hodnotou.</li>
+                    <li>**Historie masáží:** Globální přehled všech masáží s detaily.</li>
+                    <li>**Správa dárkových poukazů:** Přehled nákupů poukazů a správa individuálních poukazů.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:** Přidávání dat pomocí rozbalovacích formulářů. Data se automaticky propojují mezi klienty, historií a poukazy.</li>
+            <li>**Důležité pro přístupnost:** Všechny tabulky jsou rozbalovací pro lepší přehlednost.</li>
+        </ul>
+
+        <h4>2.2. Finanční správce (`Data/1. Aplikace/02. financni-spravce.html`)</h4>
+        <p>Komplexní aplikace pro sledování příjmů, výdajů a správu skladu masérny. Nahrazuje původní aplikace Účetnictví a Sklad masérny.</p>
+        <ul>
+            <li>**Účel:** Centrální evidence finančních transakcí a správa skladových zásob.</li>
+            <li>**Hlavní sekce:** Obsahuje rozbalovací sekce pro:
+                <ul>
+                    <li>**Přehled transakcí:** Detailní přehled všech příjmů a výdajů.</li>
+                    <li>**Měsíční přehledy:** Souhrn příjmů, výdajů a tržeb za jednotlivé měsíce.</li>
+                    <li>**Roční přehledy:** Souhrn příjmů, výdajů, tržeb a počtu masáží za jednotlivé roky.</li>
+                    <li>**Přehled skladu:** Správa položek na skladě s upozorněním na nízký stav.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:** Přidávání dat pomocí rozbalovacích formulářů. Všechna data se ukládají a exportují v jednom JSON souboru.</li>
+        </ul>
+
+        <h4>2.3. Záznamník (`Data/1. Aplikace/03. zaznamnik.html`)</h4>
+        <p>Centrální aplikace pro správu vašich poznámek, to-do úkolů, plánovaných událostí a nápadů. Nahrazuje původní aplikace Poznámky, To-Do Listy, Plánovač událostí a Nápady a inspirace.</p>
+        <ul>
+            <li>**Účel:** Sloučení a organizace všech vašich důležitých osobních i pracovních záznamů do jednoho efektivního nástroje.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Přidat poznámku:** Rozbalovací formulář pro textové poznámky.</li>
+                    <li>**Přidat To-Do List:** Rozbalovací formulář pro vytváření seznamů úkolů. Kliknutím na název listu se zobrazí úkoly v listu.</li>
+                    <li>**Přidat událost:** Rozbalovací formulář pro plánované události.</li>
+                    <li>**Přidat nápad:** Rozbalovací formulář pro nápady a inspiraci.</li>
+                    <li>**Hlavní tabulka záznamů:** Zobrazuje všechny poznámky, To-Do listy, události a nápady. Záznamy jsou automaticky seskupeny podle typu a seřazeny.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:** Jednoduché přidávání dat. Globální filtr pro vyhledávání napříč všemi záznamy.</li>
+        </ul>
+
+        <h4>2.4. Generátor poukazů a QR kódů (`Data/1. Aplikace/04. generator.html`)</h4>
+        <p>Komplexní nástroj pro vizuální tvorbu a stahování dárkových poukazů, integrovaný s generátorem QR kódů. Nahrazuje původní Generátor dárkových poukazů a Generátor QR kódů.</p>
+        <ul>
+            <li>**Účel:** Snadná tvorba personalizovaných dárkových poukazů a rychlé generování QR kódů přímo pro poukazy.</li>
+            <li>**Hlavní sekce:**
+                <ul>
+                    <li>**Údaje o firmě a texty poukazu:** Formuláře pro zadání textů poukazu (název, hodnota, věnování atd.) s nastavením zarovnání a posunu.</li>
+                    <li>**Obrázky a pozadí:** Nahrávání loga, doplňkového obrázku, výběr šablon pozadí a nahrávání vlastního pozadí.</li>
+                    <li>**Generování QR kódu:** Integrovaný generátor QR kódů, který umožňuje vygenerovat QR kód z textu/URL a **jedním kliknutím ho vložit přímo na poukaz.**</li>
+                    <li>**Náhled poukazu:** Interaktivní canvas, který zobrazuje poukaz v reálném čase.</li>
+                </ul>
+            </li>
+            <li>**Jak používat:** Vyplnění formulářů, generování QR kódu, stahování poukazu jako PNG/PDF, export/import dat a nastavení generátoru.</li>
+        </ul>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mstudio - Finanční správce</title>
+    <!-- Tailwind CSS pro jednoduché a responzivní stylování -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Základní styly pro vysoký kontrast a lepší čitelnost */
+        body {
+            background-color: #000;
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 5xl; /* Větší kontejner pro více obsahu */
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #1a1a1a;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #facc15;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        h2 {
+            color: #facc15;
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #555;
+            padding-bottom: 0.5rem;
+            display: flex; /* Pro zarovnání nadpisu s tlačítkem */
+            align-items: center;
+            justify-content: space-between; /* Oddělí nadpis od tlačítka */
+        }
+        h2 button { /* Styl pro tlačítko uvnitř H2 */
+            margin-left: 1rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            background-color: #4a4a4a;
+            color: #fff;
+        }
+        h2 button:hover {
+            background-color: #6a6a6a;
+        }
+
+        /* Styly pro tlačítka */
+        button {
+            padding: 0.75rem 1.5rem;
+            margin: 0.5rem;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+            color: #000; /* Černý text tlačítek pro lepší kontrast */
+        }
+        .btn-primary { background-color: #4caf50; color: #fff;} /* Add (zelená) */
+        .btn-secondary { background-color: #facc15; } /* Edit (žlutá) */
+        .btn-danger { background-color: #f44336; color: #fff;} /* Remove (červená) */
+        .btn-export { background-color: #ff9800; } /* Export (oranžová) */
+        .btn-import { background-color: #ffc107; } /* Import (světle oranžová) */
+        .btn-toggle-form { background-color: #6200ea; color: #fff;} /* Toggle forms (fialová) */
+        .btn-filter { background-color: #03a9f4; color: #fff;} /* Filter (světle modrá) */
+        .btn-back { background-color: #4a4a4a; color: #fff;} /* Back to Dashboard (šedá) */
+        
+        button:hover { opacity: 0.9; }
+        button:focus { outline: 2px solid #facc15; outline-offset: 2px; }
+
+        /* Styly pro formuláře a inputy */
+        .form-section {
+            background-color: #222;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        input[type="number"],
+        textarea,
+        select {
+            padding: 0.75rem;
+            width: 100%;
+            margin-bottom: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid #555;
+            background-color: #333;
+            color: #e2e8f0; /* Světlý text v inputech */
+            box-sizing: border-box; /* Zahrne padding a border do šířky */
+        }
+        textarea { height: 120px; resize: vertical; } /* Povolí změnu velikosti */
+        label { margin-bottom: 0.5rem; display: block; color: #ccc; }
+        .hidden { display: none; } /* Pro skrývání prvků */
+
+        /* Styly pro tabulku */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background: #111;
+            color: #fff;
+            margin-top: 1.5rem;
+            border-radius: 0.5rem;
+            overflow: hidden; /* Aby se border-radius aplikoval na celou tabulku */
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 0.75rem;
+            text-align: left; /* Zarovnání textu vlevo pro lepší čitelnost */
+        }
+        th {
+            background: #222;
+            font-weight: bold;
+            color: #facc15;
+        }
+        tr:nth-child(even) { background-color: #1a1a1a; } /* Střídavé barvy řádků */
+        tr:hover { background-color: #2a2a2a; } /* Změna barvy při najetí */
+
+        /* Styly pro modální okna */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .modal {
+            background: #111;
+            border: 2px solid #facc15; /* Žlutý rámeček */
+            padding: 2rem;
+            border-radius: 10px;
+            color: #fff;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto; /* Pro posouvání obsahu modalu */
+        }
+        .modal h3 {
+            color: #facc15;
+            margin-top: 0;
+            text-align: center;
+        }
+        .modal button {
+            margin-top: 1rem;
+            width: auto;
+            display: inline-block;
+        }
+        .modal-text {
+            color: #ccc;
+            margin-bottom: 1rem;
+        }
+        .modal-buttons {
+            text-align: right;
+        }
+
+        /* Specifické styly pro nízký stav skladu */
+        .low-stock { background-color: #583300; /* Tmavě oranžová pro nízký stav */ }
+        .low-stock td { border-color: #7b4f00; /* Tmavší rámeček pro kontrast */ }
+
+        /* Vylepšení pro responzivitu tabulek */
+        .table-responsive {
+            overflow-x: auto; /* Povolí horizontální posouvání, pokud je tabulka příliš široká */
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 768px) {
+            .table-responsive table {
+                min-width: 600px; /* Zajistí, že tabulka se nezmenší moc */
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container">
+        <!-- Odkaz zpět na Dashboard -->
+        <a href="../../index.html" class="back-to-dashboard-link" aria-label="Zpět na hlavní dashboard Mstudio">← Zpět na Dashboard</a>
+
+        <h1>Finanční správce</h1>
+
+        <!-- Globální Export/Import -->
+        <div class="form-section flex items-center justify-between" id="globalControls">
+            <button class="btn-export" onclick="exportAllData()">Exportovat vše (JSON)</button>
+            <label class="ml-4 btn-import">
+                Importovat vše (JSON):
+                <input type="file" onchange="importAllData(event)" accept=".json" aria-label="Vybrat soubor pro import dat"/>
+            </label>
+        </div>
+
+        <!-- Tlačítka pro zobrazení formulářů -->
+        <div class="flex flex-wrap justify-center mb-6" id="addButtonsSection">
+            <button class="btn-toggle-form" onclick="toggleForm('transactionFormSection')" aria-controls="transactionFormSection" aria-expanded="false">Přidat transakci</button>
+            <button class="btn-toggle-form" onclick="toggleForm('stockItemFormSection')" aria-controls="stockItemFormSection" aria-expanded="false">Přidat položku skladu</button>
+        </div>
+
+        <!-- Formulář pro přidání transakce -->
+        <div id="transactionFormSection" class="form-section hidden">
+            <h2>Přidat transakci</h2>
+            <label for="transactionDate">Datum:</label>
+            <input type="date" id="transactionDate" aria-label="Datum transakce" />
+            <label for="transactionType">Typ transakce:</label>
+            <select id="transactionType" aria-label="Typ transakce">
+                <option value="income">Příjem</option>
+                <option value="expense">Výdaj</option>
+            </select>
+            <label for="transactionAmount">Částka (Kč):</label>
+            <input type="number" id="transactionAmount" placeholder="Částka (Kč)" min="0" aria-label="Částka transakce" />
+            <label for="transactionDescription">Popis transakce:</label>
+            <input type="text" id="transactionDescription" placeholder="Popis transakce" aria-label="Popis transakce" />
+            <button class="btn-primary" onclick="addTransaction()">Přidat transakci</button>
+        </div>
+
+        <!-- Formulář pro přidání položky skladu -->
+        <div id="stockItemFormSection" class="form-section hidden">
+            <h2>Přidat položku do skladu</h2>
+            <label for="itemName">Název položky:</label>
+            <input type="text" id="itemName" placeholder="Název položky (např. Masážní olej)" aria-label="Název položky skladu" />
+            <label for="itemUnit">Jednotka:</label>
+            <input type="text" id="itemUnit" placeholder="Jednotka (např. ml, ks, balení)" aria-label="Jednotka položky skladu" />
+            <label for="itemQuantity">Množství na skladě:</label>
+            <input type="number" id="itemQuantity" placeholder="Množství na skladě" min="0" aria-label="Množství na skladě" />
+            <label for="itemMinQuantity">Minimální množství:</label>
+            <input type="number" id="itemMinQuantity" placeholder="Minimální množství" min="0" aria-label="Minimální množství pro upozornění" />
+            <button class="btn-primary" onclick="addItemToStock()">Přidat položku</button>
+        </div>
+
+        <!-- Globální filtr -->
+        <div class="filter-section">
+            <label for="globalFilterInput" class="sr-only">Filtruj záznamy:</label>
+            <input type="text" id="globalFilterInput" placeholder="Filtruj záznamy (popis, částka, název položky...)" oninput="updateTables()" aria-label="Filtrovat transakce nebo položky skladu" />
+            <button class="btn-filter" onclick="clearFilter()">Zrušit filtr</button>
+        </div>
+
+        <!-- Přehled transakcí -->
+        <section aria-labelledby="transactions-heading">
+            <h2 id="transactions-heading">Přehled transakcí <button onclick="toggleTableSection('transactionTableContainer', 'toggleTransactionsBtn')" id="toggleTransactionsBtn" aria-controls="transactionTableContainer" aria-expanded="false">Zobrazit</button></h2>
+            <div id="transactionTableContainer" class="table-responsive hidden">
+                <table id="transactionTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">Datum</th>
+                            <th scope="col">Typ</th>
+                            <th scope="col">Popis</th>
+                            <th scope="col">Částka</th>
+                            <th scope="col">Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Transakce se načtou zde -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Měsíční přehledy -->
+        <section aria-labelledby="monthly-summary-heading">
+            <h2 id="monthly-summary-heading">Měsíční přehledy <button onclick="toggleTableSection('monthlySummaryTableContainer', 'toggleMonthlySummaryBtn')" id="toggleMonthlySummaryBtn" aria-controls="monthlySummaryTableContainer" aria-expanded="false">Zobrazit</button></h2>
+            <div id="monthlySummaryTableContainer" class="table-responsive hidden">
+                <table class="summary-table" id="monthlySummaryTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">Měsíc/Rok</th>
+                            <th scope="col">Příjem</th>
+                            <th scope="col">Výdaj</th>
+                            <th scope="col">Tržba</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Měsíční souhrny se načtou zde -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Roční přehledy -->
+        <section aria-labelledby="annual-summary-heading">
+            <h2 id="annual-summary-heading">Roční přehledy <button onclick="toggleTableSection('annualSummaryTableContainer', 'toggleAnnualSummaryBtn')" id="toggleAnnualSummaryBtn" aria-controls="annualSummaryTableContainer" aria-expanded="false">Zobrazit</button></h2>
+            <div id="annualSummaryTableContainer" class="table-responsive hidden">
+                <table class="summary-table" id="annualSummaryTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">Rok</th>
+                            <th scope="col">Příjem</th>
+                            <th scope="col">Výdaj</th>
+                            <th scope="col">Tržba</th>
+                            <th scope="col">Počet masáží</th>
+                            <th scope="col">Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Roční souhrny se načtou zde -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Sklad -->
+        <section aria-labelledby="stock-heading">
+            <h2 id="stock-heading">Přehled skladu <button onclick="toggleTableSection('stockTableContainer', 'toggleStockBtn')" id="toggleStockBtn" aria-controls="stockTableContainer" aria-expanded="false">Zobrazit</button></h2>
+            <div id="stockTableContainer" class="table-responsive hidden">
+                <table id="stockTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">Položka</th>
+                            <th scope="col">Jednotka</th>
+                            <th scope="col">Na skladě</th>
+                            <th scope="col">Minimum</th>
+                            <th scope="col">Stav</th>
+                            <th scope="col">Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Položky skladu se načtou zde -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Modální okno pro zprávy a potvrzení -->
+        <div id="customMessageModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalMessageTitle" tabindex="-1">
+            <div class="modal-content">
+                <h3 id="modalMessageTitle" class="text-xl font-bold text-yellow-300 mb-4">Zpráva</h3>
+                <p id="modalMessage" class="text-gray-300 mb-4"></p>
+                <button id="modalOkButton" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md">OK</button>
+            </div>
+        </div>
+
+    <script>
+        // Globální úložiště dat
+        let financialData = {
+            transactions: [],
+            annualMassages: {}, // Ukládáme zde roční počty masáží
+            stockItems: []
+        };
+
+        // Custom modální okno (nahrazuje alert() a confirm())
+        let lastFocusedElement = null; // Pro udržení fokusu pro přístupnost
+
+        function showCustomModal(message, title = 'Zpráva', onConfirm = null, showCancel = false) {
+            lastFocusedElement = document.activeElement; // Uložíme aktuálně fokusovaný prvek
+            
+            document.getElementById('modalMessageTitle').textContent = title;
+            document.getElementById('modalMessage').innerText = message;
+            document.getElementById('customMessageModal').style.display = 'flex';
+            
+            const okButton = document.getElementById('modalOkButton');
+            okButton.textContent = 'OK'; // Výchozí text
+            okButton.onclick = () => { closeCustomModal(); if (onConfirm) onConfirm(); }; // Upravíme onClick
+            
+            // Přidáme Cancel tlačítko, pokud je požadováno (pro confirm)
+            let cancelButton = document.getElementById('modalCancelButton');
+            if (showCancel) {
+                if (!cancelButton) { // Vytvoříme, pokud neexistuje
+                    cancelButton = document.createElement('button');
+                    cancelButton.id = 'modalCancelButton';
+                    cancelButton.className = 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md ml-2';
+                    cancelButton.textContent = 'Zrušit';
+                    cancelButton.onclick = closeCustomModal; // Close modal on cancel
+                    okButton.parentNode.insertBefore(cancelButton, okButton.nextSibling); // Přidáme po OK tlačítku
+                } else {
+                    cancelButton.style.display = 'inline-block';
+                }
+            } else {
+                if (cancelButton) cancelButton.style.display = 'none'; // Skryjeme, pokud není potřeba
+            }
+
+            document.getElementById('customMessageModal').focus(); 
+            document.getElementById('customMessageModal').setAttribute('aria-hidden', 'false');
+            document.addEventListener('keydown', handleModalKeyboard);
+        }
+
+        function closeCustomModal() {
+            document.getElementById('customMessageModal').style.display = 'none';
+            document.getElementById('customMessageModal').setAttribute('aria-hidden', 'true');
+            document.removeEventListener('keydown', handleModalKeyboard);
+            if (lastFocusedElement) {
+                lastFocusedElement.focus();
+            }
+        }
+
+        function handleModalKeyboard(event) {
+            if (event.key === 'Escape') {
+                closeCustomModal();
+            }
+        }
+
+        // Pomocná funkce pro formátování data (DD.MM.YYYY na samband-MM-DD pro input type="date")
+        function formatDateForInput(dateString) {
+            if (!dateString) return '';
+            const parts = dateString.split('.');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return dateString;
+        }
+
+        // Pomocná funkce pro parsování data (YYYY-MM-DD z input type="date" na DD.MM.YYYY pro uložení)
+        function parseDateFromInput(dateString) {
+            if (!dateString) return '';
+            const parts = dateString.split('-'); // Předpokládáthebibliography-MM-DD
+            if (parts.length === 3) {
+                return `${parts[2]}.${parts[1]}.${parts[0]}`;
+            }
+            return dateString;
+        }
+
+        // Pomocná funkce pro získání "YYYY-MM" z data DD.MM.YYYY
+        function getYearMonth(dateString) {
+            if (!dateString) return '';
+            const parts = dateString.split('.');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}`;
+            }
+            return '';
+        }
+
+        // Pomocná funkce pro získání "YYYY" z data DD.MM.YYYY
+        function getYear(dateString) {
+            if (!dateString) return '';
+            const parts = dateString.split('.');
+            if (parts.length === 3) {
+                return parts[2];
+            }
+            return '';
+        }
+
+        // --- Funkce pro přepínání viditelnosti formulářů (stejné jako v Centrálním záznamníku) ---
+        let activeFormId = null;
+        function toggleForm(formId) {
+            const targetForm = document.getElementById(formId);
+            if (activeFormId === formId) {
+                targetForm.classList.add('hidden');
+                document.querySelector(`button[aria-controls="${formId}"]`)?.setAttribute('aria-expanded', 'false');
+                activeFormId = null;
+            } else {
+                document.querySelectorAll('.form-section').forEach(form => {
+                    if (form.id !== formId) {
+                        form.classList.add('hidden');
+                        document.querySelector(`button[aria-controls="${form.id}"]`)?.setAttribute('aria-expanded', 'false');
+                    }
+                });
+                targetForm.classList.remove('hidden');
+                document.querySelector(`button[aria-controls="${formId}"]`)?.setAttribute('aria-expanded', 'true');
+                activeFormId = formId;
+                targetForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                targetForm.querySelector('input, textarea, select, button')?.focus();
+            }
+        }
+
+        // --- Funkce pro rozbalování/sbalování sekcí s tabulkami ---
+        function toggleTableSection(containerId, buttonId) {
+            const container = document.getElementById(containerId);
+            const button = document.getElementById(buttonId);
+
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                button.textContent = 'Sbalit';
+                button.setAttribute('aria-expanded', 'true');
+                container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                container.classList.add('hidden');
+                button.textContent = 'Zobrazit';
+                button.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+
+        // --- Funkce pro Transakce (Účetnictví) ---
+        function addTransaction() {
+            const dateInput = document.getElementById('transactionDate').value;
+            const date = parseDateFromInput(dateInput);
+            const type = document.getElementById('transactionType').value;
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+            const description = document.getElementById('transactionDescription').value;
+
+            if (!date || !type || isNaN(amount) || amount <= 0 || !description) {
+                showCustomModal('Vyplňte prosím všechna pole transakce (Datum, Typ, Částka, Popis).', 'Chyba zadání');
+                return;
+            }
+
+            const newTransaction = {
+                id: Date.now().toString(),
+                date,
+                type,
+                amount,
+                description
+            };
+            financialData.transactions.push(newTransaction);
+            document.getElementById('transactionDate').value = '';
+            document.getElementById('transactionType').value = 'income';
+            document.getElementById('transactionAmount').value = '';
+            document.getElementById('transactionDescription').value = '';
+            updateTables();
+            toggleForm('transactionFormSection'); // Skryje formulář
+        }
+
+        function editTransaction(id) {
+            const t = financialData.transactions.find(trans => trans.id === id);
+            if (!t) return;
+            const dateForInput = formatDateForInput(t.date);
+            
+            showCustomModal('Upravit transakci', `
+                <label for="editTransactionDate">Datum:</label>
+                <input type="date" id="editTransactionDate" value="${dateForInput}" /><br>
+                <label for="editTransactionType">Typ:</label>
+                <select id="editTransactionType">
+                    <option value="income" ${t.type === 'income' ? 'selected' : ''}>Příjem</option>
+                    <option value="expense" ${t.type === 'expense' ? 'selected' : ''}>Výdaj</option>
+                </select><br>
+                <label for="editTransactionAmount">Částka (Kč):</label>
+                <input type="number" id="editTransactionAmount" value="${t.amount}" placeholder="Částka (Kč)" /><br>
+                <label for="editTransactionDescription">Popis transakce:</label>
+                <input type="text" id="editTransactionDescription" value="${t.description}" placeholder="Popis transakce" />
+            `, `
+                <button class="btn-primary" onclick="submitEditTransaction('${id}')">Uložit</button>
+            `);
+        }
+
+        function submitEditTransaction(id) {
+            const t = financialData.transactions.find(trans => trans.id === id);
+            if (!t) return;
+            t.date = parseDateFromInput(document.getElementById('editTransactionDate').value);
+            t.type = document.getElementById('editTransactionType').value;
+            t.amount = parseFloat(document.getElementById('editTransactionAmount').value);
+            t.description = document.getElementById('editTransactionDescription').value;
+            closeCustomModal(); 
+            updateTables();
+        }
+
+        function deleteTransaction(id) {
+            confirmAndDeleteItem('transaction', id);
+        }
+
+        function displayTransactions() {
+            const tbody = document.querySelector('#transactionTable tbody');
+            tbody.innerHTML = '';
+            const filter = document.getElementById('globalFilterInput').value.toLowerCase();
+            
+            // Filtrování transakcí podle globálního filtru
+            const filteredTransactions = financialData.transactions.filter(t => 
+                t.description.toLowerCase().includes(filter) || 
+                t.amount.toString().includes(filter) ||
+                t.date.includes(filter) // Datum je ve formátu DD.MM.YYYY
+            );
+
+            // Řazení transakcí od nejnovější po nejstarší
+            filteredTransactions.sort((a, b) => {
+                const dateA = new Date(formatDateForInput(a.date));
+                const dateB = new Date(formatDateForInput(b.date));
+                return dateB - dateA; // Sestupně
+            });
+
+            filteredTransactions.forEach(t => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${t.date}</td>
+                    <td>${t.type === 'income' ? 'Příjem' : 'Výdaj'}</td>
+                    <td>${t.description}</td>
+                    <td>${t.amount.toLocaleString('cs-CZ')} Kč</td>
+                    <td>
+                        <button class="btn-secondary" onclick="editTransaction('${t.id}')">Upravit</button>
+                        <button class="btn-danger" onclick="deleteTransaction('${t.id}')">Smazat</button>
+                        <button class="btn-export" onclick="exportItemToTxt('transaction', '${t.id}')">Export TXT</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function displayMonthlySummaries() {
+            const tbody = document.querySelector('#monthlySummaryTable tbody');
+            tbody.innerHTML = '';
+            
+            const monthlyData = {}; // { 'YYYY-MM': { income, expenses, profit } }
+
+            financialData.transactions.forEach(t => {
+                const ym = getYearMonth(t.date);
+                if (!monthlyData[ym]) {
+                    monthlyData[ym] = { income: 0, expenses: 0 };
+                }
+                if (t.type === 'income') {
+                    monthlyData[ym].income += t.amount;
+                } else {
+                    monthlyData[ym].expenses += t.amount;
+                }
+            });
+
+            const sortedMonths = Object.keys(monthlyData).sort();
+
+            sortedMonths.forEach(ym => {
+                const data = monthlyData[ym];
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${ym}</td>
+                    <td>${data.income.toLocaleString('cs-CZ')} Kč</td>
+                    <td>${data.expenses.toLocaleString('cs-CZ')} Kč</td>
+                    <td>${(data.income - data.expenses).toLocaleString('cs-CZ')} Kč</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function displayAnnualSummaries() {
+            const tbody = document.querySelector('#annualSummaryTable tbody');
+            tbody.innerHTML = '';
+
+            const annualData = {}; // { 'YYYY': { income, expenses, profit } }
+            const years = new Set(); // Pro unikátní roky
+
+            financialData.transactions.forEach(t => {
+                const year = getYear(t.date);
+                years.add(year);
+                if (!annualData[year]) {
+                    annualData[year] = { income: 0, expenses: 0 };
+                }
+                if (t.type === 'income') {
+                    annualData[year].income += t.amount;
+                } else {
+                    annualData[year].expenses += t.amount;
+                }
+            });
+
+            const sortedYears = Array.from(years).sort();
+
+            sortedYears.forEach(year => {
+                const data = annualData[year];
+                const massagesCount = financialData.annualMassages[year] || 0;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${year}</td>
+                    <td>${data.income.toLocaleString('cs-CZ')} Kč</td>
+                    <td>${data.expenses.toLocaleString('cs-CZ')} Kč</td>
+                    <td>${(data.income - data.expenses).toLocaleString('cs-CZ')} Kč</td>
+                    <td>${massagesCount}</td>
+                    <td>
+                        <button class="btn-secondary" onclick="editAnnualMassages(${year})">Upravit počet masáží</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function editAnnualMassages(year) {
+            const currentCount = financialData.annualMassages[year] || 0;
+            showCustomModal(`Upravit počet masáží pro rok ${year}`, `
+                <label for="editMassagesCount">Počet masáží:</label>
+                <input type="number" id="editMassagesCount" value="${currentCount}" min="0" /><br>
+            `, `
+                <button class="btn-primary" onclick="submitEditAnnualMassages(${year})">Uložit</button>
+            `);
+        }
+
+        function submitEditAnnualMassages(year) {
+            const newCount = parseInt(document.getElementById('editMassagesCount').value);
+            if (!isNaN(newCount) && newCount >= 0) {
+                financialData.annualMassages[year] = newCount;
+            } else {
+                showCustomModal('Zadejte prosím platné číslo pro počet masáží.', 'Chyba zadání');
+            }
+            closeCustomModal();
+            updateTables();
+        }
+
+        // --- Funkce pro Sklad ---
+        function addItemToStock() {
+            const name = document.getElementById('itemName').value.trim();
+            const unit = document.getElementById('itemUnit').value.trim();
+            const quantity = parseInt(document.getElementById('itemQuantity').value);
+            const minQuantity = parseInt(document.getElementById('itemMinQuantity').value);
+
+            if (!name || !unit || isNaN(quantity) || isNaN(minQuantity) || quantity < 0 || minQuantity < 0) {
+                showCustomModal('Prosím, vyplňte všechna pole správně (Název, Jednotka, Množství a Minimum musí být kladná čísla).', 'Chyba zadání');
+                return;
+            }
+
+            financialData.stockItems.push({
+                id: Date.now().toString(),
+                name: name,
+                unit: unit,
+                quantity: quantity,
+                minQuantity: minQuantity
+            });
+
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemUnit').value = '';
+            document.getElementById('itemQuantity').value = '';
+            document.getElementById('itemMinQuantity').value = '';
+            updateTables();
+            toggleForm('stockItemFormSection'); // Skryje formulář
+        }
+
+        function adjustStockQuantity(id) {
+            const item = financialData.stockItems.find(i => i.id === id);
+            if (!item) return;
+            showCustomModal(`Upravit množství: ${item.name}`, `
+                <p>Aktuálně na skladě: ${item.quantity} ${item.unit}</p>
+                <label for="adjustAmount">Změna množství:</label>
+                <input type="number" id="adjustAmount" placeholder="Kladné pro přidání, záporné pro odebrání" /><br>
+            `, `
+                <button class="btn-primary" onclick="submitAdjustQuantity('${id}')">Uložit změnu</button>
+            `);
+        }
+
+        function submitAdjustQuantity(id) {
+            const item = financialData.stockItems.find(i => i.id === id);
+            if (!item) return;
+            const adjustAmount = parseInt(document.getElementById('adjustAmount').value);
+
+            if (isNaN(adjustAmount)) {
+                showCustomModal('Prosím, zadejte platné číslo pro změnu množství.', 'Chyba zadání');
+                return;
+            }
+
+            const newQuantity = item.quantity + adjustAmount;
+            if (newQuantity < 0) {
+                showCustomModal('Množství na skladě nemůže klesnout pod nulu!', 'Chyba zadání');
+                return;
+            }
+            item.quantity = newQuantity;
+            closeCustomModal();
+            updateTables();
+        }
+
+        function editStockItem(id) {
+            const item = financialData.stockItems.find(i => i.id === id);
+            if (!item) return;
+            showCustomModal('Upravit položku skladu', `
+                <label for="editName">Název položky:</label>
+                <input type="text" id="editName" value="${item.name}" placeholder="Název položky" /><br>
+                <label for="editUnit">Jednotka:</label>
+                <input type="text" id="editUnit" value="${item.unit}" placeholder="Jednotka" /><br>
+                <label for="editQuantity">Množství na skladě:</label>
+                <input type="number" id="editQuantity" value="${item.quantity}" placeholder="Množství na skladě" min="0" /><br>
+                <label for="editMinQuantity">Minimální množství:</label>
+                <input type="number" id="editMinQuantity" value="${item.minQuantity}" placeholder="Minimální množství" min="0" /><br>
+            `, `
+                <button class="btn-primary" onclick="submitEditStockItem('${id}')">Uložit</button>
+            `);
+        }
+
+        function submitEditStockItem(id) {
+            const item = financialData.stockItems.find(i => i.id === id);
+            if (!item) return;
+            item.name = document.getElementById('editName').value;
+            item.unit = document.getElementById('editUnit').value;
+            
+            const newQuantity = parseInt(document.getElementById('editQuantity').value);
+            const newMinQuantity = parseInt(document.getElementById('editMinQuantity').value);
+
+            if (isNaN(newQuantity) || isNaN(newMinQuantity) || newQuantity < 0 || newMinQuantity < 0) {
+                showCustomModal('Prosím, zadejte platná čísla pro množství a minimum.', 'Chyba zadání');
+                return;
+            }
+            item.quantity = newQuantity;
+            item.minQuantity = newMinQuantity;
+            closeCustomModal();
+            updateTables();
+        }
+
+        function deleteStockItem(id) {
+            confirmAndDeleteItem('stockItem', id);
+        }
+
+        function displayStockItems() {
+            const tbody = document.querySelector('#stockTable tbody');
+            tbody.innerHTML = '';
+            const filter = document.getElementById('globalFilterInput').value.toLowerCase();
+
+            const filteredStockItems = financialData.stockItems.filter(item =>
+                item.name.toLowerCase().includes(filter) ||
+                item.unit.toLowerCase().includes(filter) ||
+                item.quantity.toString().includes(filter)
+            );
+
+            // Řadíme skladové položky abecedně podle názvu
+            filteredStockItems.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+
+            filteredStockItems.forEach(item => {
+                const row = document.createElement('tr');
+                let statusText = 'OK';
+                let rowClass = '';
+                if (item.quantity <= item.minQuantity) {
+                    statusText = 'Nízký stav!';
+                    rowClass = 'low-stock';
+                }
+
+                row.className = rowClass;
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.unit}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.minQuantity}</td>
+                    <td>${statusText}</td>
+                    <td>
+                        <button class="btn-primary" onclick="adjustStockQuantity('${item.id}')">Upravit množství</button>
+                        <button class="btn-secondary" onclick="editStockItem('${item.id}')">Upravit položku</button>
+                        <button class="btn-danger" onclick="deleteStockItem('${item.id}')">Smazat</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+
+        // --- Globální funkce pro správu dat a tabulky ---
+        function confirmAndDeleteItem(type, id) {
+            showCustomModal('Opravdu chcete odstranit tento záznam?', 'Potvrdit smazání', () => {
+                if (type === 'transaction') {
+                    financialData.transactions = financialData.transactions.filter(t => t.id !== id);
+                } else if (type === 'stockItem') {
+                    financialData.stockItems = financialData.stockItems.filter(i => i.id !== id);
+                }
+                updateTables();
+            }, true); // showCancel = true pro potvrzovací modal
+        }
+
+
+        function updateTables() {
+            displayTransactions();
+            displayMonthlySummaries();
+            displayAnnualSummaries();
+            displayStockItems();
+        }
+
+        function clearFilter() {
+            document.getElementById('globalFilterInput').value = '';
+            updateTables();
+        }
+
+        function exportAllData() {
+            try {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(financialData));
+                const dl = document.createElement('a');
+                dl.setAttribute("href", dataStr);
+                dl.setAttribute("download", "financni_data.json");
+                dl.click();
+                showCustomModal("Všechna finanční data byly úspěšně exportována jako JSON.");
+            } catch (error) {
+                console.error("Chyba při exportu JSON dat:", error);
+                showCustomModal("Nastala chyba při exportu dat. Zkuste to prosím znovu.", 'Chyba exportu');
+            }
+        }
+
+        function importAllData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    // Základní kontrola formátu
+                    if (importedData && typeof importedData === 'object' &&
+                        'transactions' in importedData && Array.isArray(importedData.transactions) &&
+                        'annualMassages' in importedData && typeof importedData.annualMassages === 'object' &&
+                        'stockItems' in importedData && Array.isArray(importedData.stockItems)) {
+                        
+                        // Zajistíme, že ID jsou stringy pro konzistenci
+                        importedData.transactions.forEach(item => item.id = item.id ? String(item.id) : Date.now().toString());
+                        importedData.stockItems.forEach(item => item.id = item.id ? String(item.id) : Date.now().toString());
+
+                        financialData = importedData;
+                        updateTables();
+                        showCustomModal('Finanční data byla úspěšně importována!');
+                    } else {
+                        showCustomModal('Chyba: Importovaný soubor nemá očekávaný formát pro finanční správce.', 'Chyba importu');
+                    }
+                } catch (e) {
+                    console.error("Chyba při importu JSON souboru:", e);
+                    showCustomModal('Chyba při čtení JSON souboru: ' + e.message, 'Chyba importu');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Počáteční zobrazení tabulek při načtení stránky
+        document.addEventListener('DOMContentLoaded', () => {
+            // Při načtení stránky pro každou tabulkovou sekci připojíme event listener
+            document.querySelectorAll('h2[id$="-heading"] + .table-responsive').forEach(container => {
+                const buttonId = `toggle${container.id.replace('Container', '')}Btn`; // Např. toggleTransactionsBtn
+                const button = document.getElementById(buttonId); // Najde tlačítko
+                if (button) {
+                    button.onclick = () => toggleTableSection(container.id, buttonId); // Připojí toggle funkci
+                }
+            });
+
+            document.getElementById('modalOkButton').addEventListener('click', closeCustomModal);
+            // Volitelné tlačítko Zrušit pro potvrzovací modaly
+            const modalButtonsDiv = document.getElementById('modalOkButton').parentNode;
+            const cancelButton = document.createElement('button');
+            cancelButton.id = 'modalCancelButton';
+            cancelButton.className = 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md ml-2 hidden';
+            cancelButton.textContent = 'Zrušit';
+            cancelButton.onclick = closeCustomModal;
+            modalButtonsDiv.insertBefore(cancelButton, document.getElementById('modalOkButton').nextSibling);
+
+
+            updateTables();
+        });
+    </script>
+</body>
+</html>

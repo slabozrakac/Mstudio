@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mstudio - Masérna</title>
+    <!-- Tailwind CSS pro jednoduché a responzivní stylování -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Základní styly pro vysoký kontrast a lepší čitelnost */
+        body {
+            background-color: #000;
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 6xl; /* Větší kontejner pro komplexní obsah */
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #1a1a1a;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #facc15;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        h2 {
+            color: #facc15;
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #555;
+            padding-bottom: 0.5rem;
+            display: flex; /* Pro zarovnání nadpisu s tlačítkem */
+            align-items: center;
+            justify-content: space-between; /* Oddělí nadpis od tlačítka */
+        }
+        h2 button { /* Styl pro tlačítko uvnitř H2 */
+            margin-left: 1rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            background-color: #4a4a4a;
+            color: #fff;
+        }
+        h2 button:hover {
+            background-color: #6a6a6a;
+        }
+        h3 { /* Styl pro sub-nadpisy (např. uvnitř detailu klienta) */
+            color: #90cdf4;
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px dashed #555;
+            padding-bottom: 0.25rem;
+        }
+
+        /* Styly pro tlačítka */
+        button {
+            padding: 0.75rem 1.5rem;
+            margin: 0.5rem;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+            color: #000; /* Černý text tlačítek pro lepší kontrast */
+        }
+        .btn-primary { background-color: #4caf50; color: #fff;} /* Add (zelená) */
+        .btn-secondary { background-color: #facc15; } /* Edit (žlutá) */
+        .btn-danger { background-color: #f44336; color: #fff;} /* Remove (červená) */
+        .btn-export { background-color: #ff9800; } /* Export (oranžová) */
+        .btn-import { background-color: #ffc107; } /* Import (světle oranžová) */
+        .btn-toggle-form { background-color: #6200ea; color: #fff;} /* Toggle forms (fialová) */
+        .btn-filter { background-color: #03a9f4; color: #fff;} /* Filter (světle modrá) */
+        .btn-back { background-color: #4a4a4a; color: #fff;} /* Back to Dashboard (šedá) */
+        
+        button:hover { opacity: 0.9; }
+        button:focus { outline: 2px solid #facc15; outline-offset: 2px; }
+
+        /* Styly pro formuláře a inputy */
+        .form-section {
+            background-color: #222;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        input[type="number"],
+        input[type="tel"], /* pro telefon */
+        textarea,
+        select {
+            padding: 0.75rem;
+            width: 100%;
+            margin-bottom: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid #555;
+            background-color: #333;
+            color: #e2e8f0; /* Světlý text v inputech */
+            box-sizing: border-box; /* Zahrne padding a border do šířky */
+        }
+        textarea { height: 120px; resize: vertical; } /* Povolí změnu velikosti */
+        label { margin-bottom: 0.5rem; display: block; color: #ccc; }
+        .hidden { display: none; } /* Pro skrývání prvků */
+
+        /* Styly pro tabulku */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background: #111;
+            color: #fff;
+            margin-top: 1.5rem;
+            border-radius: 0.5rem;
+            overflow: hidden; /* Aby se border-radius aplikoval na celou tabulku */
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 0.75rem;
+            text-align: left; /* Zarovnání textu vlevo pro lepší čitelnost */
+        }
+        th {
+            background: #222;
+            font-weight: bold;
+            color: #facc15;
+        }
+        tr:nth-child(even) { background-color: #1a1a1a; } /* Střídavé barvy řádků */
+        tr:hover { background-color: #2a2a2a; } /* Změna barvy při najetí */
+        .active-client-row {
+            background-color: #4a5568 !important; /* Výraznější barva pro rozbalený řádek klienta */
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Styly pro modální okna */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .modal {
+            background: #111;
+            border: 2px solid #facc15; /* Žlutý rámeček */
+            padding: 2rem;
+            border-radius: 10px;
+            color: #fff;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto; /* Pro posouvání obsahu modalu */
+        }
+        .modal h3 {
+            color: #facc15;
+            margin-top: 0;
+            text-align: center;
+        }
+        .modal button {
+            margin-top: 1rem;
+            width: auto;
+            display: inline-block;
+        }
+        .modal-text {
+            color: #ccc;
+            margin-bottom: 1rem;
+        }
+        .modal-buttons {
+            text-align: right;
+        }
+
+        /* Vylepšení pro responzivitu tabulek */
+        .table-responsive {
+            overflow-x: auto; /* Povolí horizontální posouvání, pokud je tabulka příliš široká */
+            margin-bottom: 2rem;
+        }
+        /* Pro vnitřní tabulky klienta */
+        .client-detail-section {
+            background-color: #2a2a2a;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .client-detail-section h3 {
+            color: #facc15;
+            border-bottom: 1px dotted #777;
+            padding-bottom: 0.25rem;
+        }
+        .client-detail-section table {
+            background-color: #333;
+            margin-top: 0.75rem;
+        }
+        .client-detail-section table th {
+            background-color: #444;
+            color: #facc15;
+        }
+    </style>
+</head>
+<body>
+    <!-- Odkaz zpět na Dashboard -->
+    <a href="../../index.html" class="back-to-dashboard-link" aria-label="Zpět na hlavní dashboard Mstudio">← Zpět na Dashboard</a>
+
+    <div class="container">
+        <h1>Masérna</h1>
+
+        <!-- Globální Export/Import pro všechna data v aplikaci Masérna -->
+        <div class="form-section flex items-center justify-between">
+            <button class="btn-export" onclick="exportAllMasernaData()">Exportovat vše (JSON)</button>
+            <label class="ml-4 btn-import">
+                Importovat vše (JSON):
+                <input type="file" onchange="importAllMasernaData(event)" accept=".json" aria-label="Vybrat soubor pro import všech dat Masérny"/>
+            </label>
+        </div>
+
+        <!-- Tlačítka pro zobrazení formulářů -->
+        <div class="flex flex-wrap justify-center mb-6">
+            <button class="btn-toggle-form" onclick="toggleForm('clientFormSection')" aria-controls="clientFormSection" aria-expanded="false">Přidat klienta</button>
+            <button class="btn-toggle-form" onclick="toggleForm('massageFormSection')" aria-controls="massageFormSection" aria-expanded="false">Přidat masáž</button>
+            <button class="btn-toggle-form" onclick="toggleForm('voucherPurchaseFormSection')" aria-controls="voucherPurchaseFormSection" aria-expanded="false">Přidat nákup poukazů</button>
+            <button class="btn-toggle-form" onclick="toggleForm('priceListFormSection')" aria-controls="priceListFormSection" aria-expanded="false">Přidat položku ceníku</button>
+            <button class="btn-toggle-form" onclick="toggleForm('clientNoteFormSection')" aria-controls="clientNoteFormSection" aria-expanded="false">Přidat poznámku ke klientovi</button>
+        </div>
+
+        <!-- Formuláře pro přidání -->
+        <div id="clientFormSection" class="form-section hidden">
+            <h2>Přidat klienta</h2>
+            <label for="clientId">ID klienta:</label>
+            <input type="text" id="clientId" placeholder="Např. JS001" aria-label="ID klienta" />
+            <label for="clientName">Příjmení a jméno:</label>
+            <input type="text" id="clientName" placeholder="Např. Novák Jan" aria-label="Příjmení a jméno klienta" />
+            <label for="clientPhone">Telefon:</label>
+            <input type="tel" id="clientPhone" placeholder="Např. +420123456789" aria-label="Telefon klienta" />
+            <label for="clientDiag">Diagnóza:</label>
+            <input type="text" id="clientDiag" placeholder="Např. Bolesti zad, migrény" aria-label="Diagnóza klienta" />
+            <button class="btn-primary" onclick="addClient()">Přidat klienta</button>
+        </div>
+
+        <div id="massageFormSection" class="form-section hidden">
+            <h2>Přidat masáž</h2>
+            <label for="massageClientName">Jméno klienta:</label>
+            <input type="text" id="massageClientName" placeholder="Přesné jméno klienta (např. Novák Jan)" aria-label="Jméno klienta pro přidání masáže" />
+            <label for="massageDate">Datum (DD.MM.RRRR):</label>
+            <input type="date" id="massageDate" aria-label="Datum masáže" />
+            <label for="massageTime">Čas (např. 08:00 - 09:00):</label>
+            <input type="text" id="massageTime" placeholder="Např. 08:00 - 09:00" aria-label="Čas masáže" />
+            <label for="massageMethod">Metoda:</label>
+            <input type="text" id="massageMethod" placeholder="Např. K1, Reflexní, Lávové kameny" aria-label="Metoda masáže" />
+            <label for="massagePayment">Platba (H/K/V):</label>
+            <input type="text" id="massagePayment" placeholder="Např. H (Hotovost), K (Karta), V (Voucher)" aria-label="Typ platby masáže" />
+            <label for="massagePrice">Cena (Kč):</label>
+            <input type="number" id="massagePrice" placeholder="Např. 690" min="0" aria-label="Cena masáže" />
+            <button class="btn-primary" onclick="addMassage()">Přidat masáž</button>
+        </div>
+
+        <div id="voucherPurchaseFormSection" class="form-section hidden">
+            <h2>Přidat nákup poukazů</h2>
+            <label for="purchaseId">ID nákupu:</label>
+            <input type="text" id="purchaseId" placeholder="Např. PUK001" aria-label="ID nákupu poukazů" />
+            <label for="purchasingClientName">Jméno kupujícího klienta:</label>
+            <input type="text" id="purchasingClientName" placeholder="Např. Novák Jan" aria-label="Jméno kupujícího klienta" />
+            <label for="overallPaymentType">Typ platby (H/K/V):</label>
+            <input type="text" id="overallPaymentType" placeholder="Např. H (Hotovost), K (Karta)" aria-label="Typ platby za nákup" />
+            <button class="btn-primary" onclick="addVoucherPurchase()">Přidat nákup</button>
+        </div>
+
+        <div id="priceListFormSection" class="form-section hidden">
+            <h2>Přidat položku ceníku</h2>
+            <label for="itemYear">Rok:</label>
+            <input type="number" id="itemYear" placeholder="Např. 2025" min="1900" max="2100" aria-label="Rok ceníkové položky" />
+            <label for="itemType">Typ:</label>
+            <input type="text" id="itemType" placeholder="Např. K1" aria-label="Typ ceníkové položky" />
+            <label for="priceListName">Název masáže:</label>
+            <input type="text" id="priceListName" placeholder="Např. Klasická masáž" aria-label="Název masáže v ceníku" />
+            <label for="itemLength">Délka:</label>
+            <input type="text" id="itemLength" placeholder="Např. 30 minut" aria-label="Délka masáže v ceníku" />
+            <label for="itemPrice">Cena (Kč):</label>
+            <input type="number" id="itemPrice" placeholder="Např. 500" min="0" aria-label="Cena masáže v ceníku" />
+            <button class="btn-primary" onclick="addPriceListItem()">Přidat položku</button>
+        </div>
+
+        <div id="clientNoteFormSection" class="form-section hidden">
+            <h2>Přidat poznámku ke klientovi</h2>
+            <label for="clientNoteClientName">Příjmení a jméno klienta:</label>
+            <input type="text" id="clientNoteClientName" placeholder="Přesné jméno klienta (např. Novák Jan)" aria-label="Jméno klienta pro poznámku" />
+            <label for="clientNoteText">Poznámka:</label>
+            <textarea id="clientNoteText" placeholder="Sem napište poznámku ke klientovi..." aria-label="Text poznámky ke klientovi"></textarea>
+            <button class="btn-primary" onclick="addClientNote()">Přidat poznámku</button>
+        </div>
+
+        <!-- Globální filtr -->
+        <div class="filter-section">
+            <label for="globalFilterInput" class="sr-only">Filtruj záznamy:</label>
+            <input type="text" id="globalFilterInput" placeholder="Filtruj klienty, masáže, ceník, poukazy..." oninput="updateAllTables()" aria-label="Globální filtr" />
+            <button class="btn-filter" onclick="clearFilter()">Zrušit filtr</button>
+        </div>
+
+        <!-- HLAVNÍ SEKCE A TABULKY -->
+
+        <!-- 1. Správa klientů -->
+        <section aria-labelledby="clients-heading">
+            <h2 id="clients-heading">Správa klientů <button onclick="toggleTableSection('clientTableContainer', 'toggleClientsBtn')" id="toggleClientsBtn" aria-controls="clientTableContainer" aria-expanded="false">Zobrazit</button></h2>
+            <div id="clientTableContainer" class="table-responsive hidden">
+                <table id="clientTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Klient</th>
+                            <th scope="col">Telefon</th>
+                            <th scope="col">Diagnóza</th>
+                            <th scope="col">Počet masáží</th>
+                            <th scope="col">Celkem zaplaceno</th>
+                            <th scope="col">Použité metody</th>
+                            <th scope="col">Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Klienti se načtou zde -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 2. Ceník masáží -->
+        <section aria-labelledby="pricelist-heading">
+            <h2 id="pricelist-heading">Ceník masáží <button onclick="toggleTableSection('priceListTableContainer', 'togglePricelistBtn')" id="togglePricelistBtn" aria-controls="priceListTableContainer" aria-expanded="false">Zobrazit</button></h2>
+            <div id="priceListTableContainer" class="table-responsive hidden">
+                <table id="priceListTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">Rok</th>
+                            <th scope="col">Typ</th>
+                            <th scope="col">Masáž</th>
+                            <th scope="col">Délka</th>
+                            <th scope="col">Cena</th>
+                            <th scope="col">Počet</th>
+                            <th scope="col">Celkem</th>
+                            <th scope="col">Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Položky ceníku se načtou zde -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 3. Historie masáží (globální) -->
+        <section aria-labelledby="massage-history-heading">
+            <h2 id="massage-history-heading">Historie masáží <button onclick="toggleTableSection('globalMassageHistoryTableContainer', 'toggleGlobalMassageHistoryBtn')" id="toggleGlobalMassageHistoryBtn" aria-controls="globalMassageHistoryTableContainer" aria-expanded="false">Zobrazit</button></h2>
+            <div id="globalMassageHistoryTableContainer" class="table-responsive hidden">
+                <table id="globalMassageHistoryTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">Datum</th>
+                            <th scope="col">Čas</th>
+                            <th scope="col">ID Klienta</th>
+                            <th scope="col">Jméno Klienta</th>
+                            <th scope="col">Metoda</th>
+                            <th scope="col">Platba</th>
+                            <th scope="col">Částka</th>
+                            <th scope="col">Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Globální historie masáží se načte zde -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 4. Správa dárkových poukazů -->
+        <section aria-labelledby="vouchers-heading">
+            <h2 id="vouchers-heading">Správa dárkových poukazů <button onclick="toggleTableSection('voucherTableContainer', 'toggleVouchersBtn')" id="toggleVouchersBtn" aria-controls="voucherTableContainer" aria-expanded="false">Zobrazit</button></h2>
+            <div id="voucherTableContainer" class="table-responsive hidden">
+                <table id="voucherTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID Nákupu</th>
+                            <th scope="col">Klient (Kupující)</th>
+                            <th scope="col">Počet Poukazů</th>
+                            <th scope="col">Celková Hodnota</th>
+                            <th scope="col">Typ Platby</th>
+                            <th scope="col">Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Nákupy poukazů se načtou zde -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Modální okna pro zprávy, potvrzení a editace -->
+        <div id="customMessageModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalMessageTitle" tabindex="-1">
+            <div class="modal-content">
+                <h3 id="modalMessageTitle" class="text-xl font-bold text-yellow-300 mb-4">Zpráva</h3>
+                <p id="modalMessage" class="text-gray-300 mb-4"></p>
+                <button id="modalOkButton" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md">OK</button>
+            </div>
+        </div>
+        
+        <!-- Modální okno pro přidání/úpravu jednotlivého poukazu k nákupu -->
+        <div id="addIndividualVoucherModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="addVoucherModalTitle" tabindex="-1">
+            <div class="modal-content">
+                <h3 id="addVoucherModalTitle">Přidat nový poukaz k nákupu</h3>
+                <label for="newVoucherType">Typ poukazu:</label>
+                <input type="text" id="newVoucherType" placeholder="Např. V1" /><br>
+                <label for="newVoucherIssueDate">Datum vystavení:</label>
+                <input type="date" id="newVoucherIssueDate" /><br>
+                <label for="newVoucherValue">Hodnota poukazu:</label>
+                <input type="number" id="newVoucherValue" placeholder="Např. 500" min="0" /><br>
+                <div class="modal-buttons">
+                    <button id="submitAddIndividualVoucher" class="btn-primary">Uložit</button>
+                    <button class="btn-back" onclick="closeModal('addIndividualVoucherModal')">Zrušit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modální okno pro editaci záznamu masáže u klienta (ne v historii) -->
+        <div id="editClientMassageModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="editClientMassageModalTitle" tabindex="-1">
+            <div class="modal-content">
+                <h3 id="editClientMassageModalTitle">Upravit masáž</h3>
+                <label for="editClientMassageDate">Datum:</label>
+                <input type="date" id="editClientMassageDate" /><br>
+                <label for="editClientMassageTime">Čas:</label>
+                <input type="text" id="editClientMassageTime" placeholder="Čas" /><br>
+                <label for="editClientMassageMethod">Metoda:</label>
+                <input type="text" id="editClientMassageMethod" placeholder="Metoda" /><br>
+                <label for="editClientMassagePayment">Platba (H/K/V):</label>
+                <input type="text" id="editClientMassagePayment" placeholder="Platba" /><br>
+                <label for="editClientMassagePrice">Cena:</label>
+                <input type="number" id="editClientMassagePrice" min="0" /><br>
+                <div class="modal-buttons">
+                    <button id="submitEditClientMassage" class="btn-primary">Uložit</button>
+                    <button class="btn-back" onclick="closeModal('editClientMassageModal')">Zrušit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modální okno pro editaci individuálního poukazu -->
+        <div id="editIndividualVoucherModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="editIndividualVoucherModalTitle" tabindex="-1">
+            <div class="modal-content">
+                <h3 id="editIndividualVoucherModalTitle">Upravit poukaz</h3>
+                <label for="editVoucherType">Typ poukazu:</label>
+                <input type="text" id="editVoucherType" placeholder="Typ poukazu" /><br>
+                <label for="editVoucherIssueDate">Datum vystavení:</label>
+                <input type="date" id="editVoucherIssueDate" /><br>
+                <label for="editRedeemedBy">Kdo poukaz využil:</label>
+                <input type="text" id="editRedeemedBy" placeholder="Kdo poukaz využil" /><br>
+                <label for="editRedemptionDates">Datumy využití (DD.MM.RRRR, DD.MM.RRRR):</label>
+                <input type="text" id="editRedemptionDates" placeholder="Datumy využití" /><br>
+                <label for="editVoucherValue">Hodnota poukazu:</label>
+                <input type="number" id="editVoucherValue" min="0" /><br>
+                <div class="modal-buttons">
+                    <button id="submitEditIndividualVoucher" class="btn-primary">Uložit</button>
+                    <button class="btn-back" onclick="closeModal('editIndividualVoucherModal')">Zrušit</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modální okno pro editaci poznámky klienta -->
+        <div id="editClientNoteModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="editClientNoteModalTitle" tabindex="-1">
+            <div class="modal-content">
+                <h3 id="editClientNoteModalTitle">Upravit poznámku</h3>
+                <label for="editClientNoteText">Text poznámky:</label>
+                <textarea id="editClientNoteText" placeholder="Text poznámky"></textarea><br>
+                <div class="modal-buttons">
+                    <button id="submitEditClientNote" class="btn-primary">Uložit</button>
+                    <button class="btn-back" onclick="closeModal('editClientNoteModal')">Zrušit</button>
+                </div>
+            </div>
+        </div>
+        <!-- Modální okno pro přidání počtu do ceníku -->
+        <div id="addCountToPriceListItemModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="addCountModalTitle" tabindex="-1">
+            <div class="modal-content">
+                <h3 id="addCountModalTitle">Zadat počet pro položku ceníku</h3>
+                <p id="addCountModalItemName" class="text-gray-300 mb-4"></p>
+                <label for="editItemCount">Aktuální počet:</label>
+                <input type="number" id="editItemCount" value="0" min="0" aria-label="Zadejte počet pro položku ceníku" /><br>
+                <div class="modal-buttons">
+                    <button id="submitCountToPriceListItemBtn" class="btn-primary">Uložit</button>
+                    <button class="btn-back" onclick="closeModal('addCountToPriceListItemModal')">Zrušit</button>
+                </div>
+            </div>
+        </div>
+
+
+    <script>
+        // Globální datová struktura pro celou aplikaci Masérna
+        let masernaData = {
+            clients: [], // Klienti a jejich masáže, poznámky: { id, name, phone, diag, massages: [], clientNotes: [] }
+            priceListItems: [], // Položky ceníku: { year, type, name, length, price, count, total }
+            globalMassageHistory: [], // Všechny masáže: { id, date, time, clientId, clientName, method, payment, amount }
+            voucherPurchases: [] // Nákupy poukazů: { purchaseId, purchasingClientName, overallPaymentType, totalVouchersBought, totalAmountPaid, individualVouchers: [] }
+        };
+
+        // Pomocná funkce pro zobrazení/skrytí modálního okna (pro zprávy a potvrzení)
+        let lastFocusedElement = null;
+        function showCustomModal(message, title = 'Zpráva', onConfirm = null, showCancel = false) {
+            lastFocusedElement = document.activeElement;
+            const modal = document.getElementById('customMessageModal');
+            document.getElementById('modalMessageTitle').textContent = title;
+            document.getElementById('modalMessage').innerText = message;
+            modal.style.display = 'flex';
+            modal.focus();
+            modal.setAttribute('aria-hidden', 'false');
+            
+            const okButton = document.getElementById('modalOkButton');
+            okButton.onclick = () => { closeCustomModal(); if (onConfirm) onConfirm(); };
+            
+            let cancelButton = document.getElementById('modalCancelButton');
+            if (!cancelButton) { // Vytvoříme ho jen jednou
+                cancelButton = document.createElement('button');
+                cancelButton.id = 'modalCancelButton';
+                cancelButton.className = 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md ml-2 hidden';
+                cancelButton.textContent = 'Zrušit';
+                cancelButton.onclick = closeCustomModal; // Zavře modal na Zrušit
+                okButton.parentNode.insertBefore(cancelButton, okButton.nextSibling);
+            }
+            cancelButton.style.display = showCancel ? 'inline-block' : 'none';
+
+            document.addEventListener('keydown', handleModalKeyboard);
+        }
+
+        function closeCustomModal() {
+            const modal = document.getElementById('customMessageModal');
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+            document.removeEventListener('keydown', handleModalKeyboard);
+            if (lastFocusedElement) {
+                lastFocusedElement.focus();
+            }
+        }
+
+        // Pro zavírání všech modalů (včetně editačních)
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+                modal.setAttribute('aria-hidden', 'true');
+                if (lastFocusedElement) {
+                    lastFocusedElement.focus();
+                }
+            }
+        }
+        
+        function handleModalKeyboard(event) {
+            if (event.key === 'Escape') {
+                closeCustomModal();
+            }
+        }
+
+        // --- Pomocné funkce pro formátování dat ---
+        function formatDateForInput(dateString) { // DD.MM.YYYY -> YYYY-MM-DD
+            if (!dateString) return '';
+            const parts = dateString.split('.');
+            if (parts.length === 3) { return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`; }
+            return dateString;
+        }
+
+        function parseDateFromInput(dateString) { // YYYY-MM-DD -> DD.MM.YYYY
+            if (!dateString) return '';
+            const parts = dateString.split('-');
+            if (parts.length === 3) { return `${parts[2]}.${parts[1]}.${parts[0]}`; }
+            return dateString;
+        }
+
+        function getYearMonth(dateString) { // DD.MM.YYYY -> YYYY-MM
+            if (!dateString) return '';
+            const parts = dateString.split('.');
+            if (parts.length === 3) { return `${parts[2]}-${parts[1].padStart(2, '0')}`; }
+            return '';
+        }
+
+        function getYear(dateString) { // DD.MM.YYYY -> YYYY
+            if (!dateString) return '';
+            const parts = dateString.split('.');
+            if (parts.length === 3) { return parts[2]; }
+            return '';
+        }
+
+        function calculateExpiryDate(issueDateStr) { // DD.MM.YYYY -> DD.MM.YYYY (za rok)
+            if (!issueDateStr) return '';
+            const parts = issueDateStr.split('.');
+            if (parts.length !== 3) return '';
+            const day = parseInt(parts[0]); const month = parseInt(parts[1]) - 1; const year = parseInt(parts[2]);
+            const date = new Date(year, month, day);
+            date.setFullYear(date.getFullYear() + 1);
+            const expDay = String(date.getDate()).padStart(2, '0');
+            const expMonth = String(date.getMonth() + 1).padStart(2, '0');
+            const expYear = date.getFullYear();
+            return `${expDay}.${expMonth}.${expYear}`;
+        }
+
+        // --- Funkce pro přepínání viditelnosti formulářů ---
+        let activeFormId = null;
+        function toggleForm(formId) {
+            const targetForm = document.getElementById(formId);
+            if (activeFormId === formId) {
+                targetForm.classList.add('hidden');
+                document.querySelector(`button[aria-controls="${formId}"]`)?.setAttribute('aria-expanded', 'false');
+                activeFormId = null;
+            } else {
+                document.querySelectorAll('.form-section').forEach(form => {
+                    if (form.id !== formId) {
+                        form.classList.add('hidden');
+                        document.querySelector(`button[aria-controls="${form.id}"]`)?.setAttribute('aria-expanded', 'false');
+                    }
+                });
+                targetForm.classList.remove('hidden');
+                document.querySelector(`button[aria-controls="${formId}"]`)?.setAttribute('aria-expanded', 'true');
+                activeFormId = formId;
+                targetForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                targetForm.querySelector('input, textarea, select, button')?.focus();
+            }
+        }
+
+        // --- Funkce pro rozbalování/sbalování sekcí s tabulkami ---
+        function toggleTableSection(containerId, buttonId) {
+            const container = document.getElementById(containerId);
+            const button = document.getElementById(buttonId);
+
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                button.textContent = 'Sbalit';
+                button.setAttribute('aria-expanded', 'true');
+                container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                container.classList.add('hidden');
+                button.textContent = 'Zobrazit';
+                button.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        // --- Klienti: Přidání, úpravy, mazání ---
+        function addClient() {
+            const id = document.getElementById('clientId').value.trim();
+            const name = document.getElementById('clientName').value.trim();
+            const phone = document.getElementById('clientPhone').value.trim();
+            const diag = document.getElementById('clientDiag').value.trim();
+
+            if (!id || !name) { showCustomModal('Prosím, vyplňte ID klienta a jméno.', 'Chyba zadání'); return; }
+            if (masernaData.clients.some(c => c.id === id)) { showCustomModal('Klient s tímto ID již existuje.', 'Chyba ID'); return; }
+
+            masernaData.clients.push({ id, name, phone, diag, massages: [], total: 0, count: 0, methods: [], clientNotes: [], expanded: false, subTables: { massages: false, vouchers: false, notes: false } }); // Přidána expanded a subTables
+            document.getElementById('clientId').value = ''; document.getElementById('clientName').value = '';
+            document.getElementById('clientPhone').value = ''; document.getElementById('clientDiag').value = '';
+            updateAllTables();
+            toggleForm('clientFormSection');
+        }
+
+        function editClient(id) {
+            const client = masernaData.clients.find(c => c.id === id);
+            if (!client) return;
+            showCustomModal(`Upravit klienta: ${client.name}`, `
+                <label for="editClientId">ID klienta:</label>
+                <input type="text" id="editClientId" value="${client.id}" disabled /><br> <!-- ID nelze měnit -->
+                <label for="editClientName">Příjmení a jméno:</label>
+                <input type="text" id="editClientName" value="${client.name}" /><br>
+                <label for="editClientPhone">Telefon:</label>
+                <input type="tel" id="editClientPhone" value="${client.phone}" /><br>
+                <label for="editClientDiag">Diagnóza:</label>
+                <input type="text" id="editClientDiag" value="${client.diag}" /><br>
+            `, `
+                <button class="btn-primary" onclick="submitEditClient('${id}')">Uložit</button>
+            `);
+        }
+
+        function submitEditClient(id) {
+            const client = masernaData.clients.find(c => c.id === id);
+            if (!client) return;
+            client.name = document.getElementById('editClientName').value.trim();
+            client.phone = document.getElementById('editClientPhone').value.trim();
+            client.diag = document.getElementById('editClientDiag').value.trim();
+            closeCustomModal();
+            updateAllTables();
+        }
+
+        function deleteClient(id) {
+            confirmAndDeleteItem('client', id, 'Opravdu chcete odstranit klienta a veškeré jeho záznamy (masáže, poznámky, poukazy)?');
+        }
+
+        // --- Klienti: Přidání masáže (propíše se i do Historie masáží) ---
+        function addMassage() {
+            const clientName = document.getElementById('massageClientName').value.trim();
+            const date = document.getElementById('massageDate').value; // YYYY-MM-DD format
+            const time = document.getElementById('massageTime').value.trim();
+            const method = document.getElementById('massageMethod').value.trim();
+            const payment = document.getElementById('massagePayment').value.trim();
+            const price = parseFloat(document.getElementById('massagePrice').value);
+
+            if (!clientName || !date || !time || !method || !payment || isNaN(price) || price < 0) {
+                showCustomModal('Vyplňte prosím všechna pole masáže.', 'Chyba zadání'); return;
+            }
+            const client = masernaData.clients.find(c => c.name.toLowerCase() === clientName.toLowerCase());
+            if (!client) { showCustomModal('Klient s tímto jménem nebyl nalezen. Přidejte ho prosím nejdříve.', 'Klient nenalezen'); return; }
+
+            const newMassage = { id: Date.now().toString(), date: parseDateFromInput(date), time, method, payment, price };
+            client.massages.push(newMassage);
+            client.count++;
+            client.total += price;
+            if (!client.methods.includes(method)) client.methods.push(method);
+
+            // Přidáme masáž i do globální historie masáží
+            masernaData.globalMassageHistory.push({
+                id: newMassage.id,
+                date: newMassage.date,
+                time: newMassage.time,
+                clientId: client.id,
+                clientName: client.name,
+                method: newMassage.method,
+                payment: newMassage.payment,
+                amount: newMassage.price
+            });
+
+            document.getElementById('massageClientName').value = ''; document.getElementById('massageDate').value = '';
+            document.getElementById('massageTime').value = ''; document.getElementById('massageMethod').value = '';
+            document.getElementById('massagePayment').value = ''; document.getElementById('massagePrice').value = '';
+            updateAllTables();
+            toggleForm('massageFormSection');
+            showCustomModal('Masáž byla úspěšně přidána ke klientovi a do historie.', 'Masáž přidána');
+        }
+
+        // Funkce pro úpravu masáže přímo u klienta (v klientské podtabulce)
+        function editClientMassage(clientId, massageId) {
+            const client = masernaData.clients.find(c => c.id === clientId);
+            if (!client) return;
+            const massage = client.massages.find(m => m.id === massageId);
+            if (!massage) return;
+
+            const dateForInput = formatDateForInput(massage.date);
+
+            lastFocusedElement = document.activeElement; // Uložíme fokus
+            const modal = document.getElementById('editClientMassageModal');
+            document.getElementById('editClientMassageModalTitle').textContent = `Upravit masáž pro ${client.name}`;
+            document.getElementById('editClientMassageDate').value = dateForInput;
+            document.getElementById('editClientMassageTime').value = massage.time;
+            document.getElementById('editClientMassageMethod').value = massage.method;
+            document.getElementById('editClientMassagePayment').value = massage.payment;
+            document.getElementById('editClientMassagePrice').value = massage.price;
+
+            document.getElementById('submitEditClientMassage').onclick = () => submitEditClientMassage(clientId, massageId);
+            modal.style.display = 'flex';
+            modal.focus();
+        }
+
+        function submitEditClientMassage(clientId, massageId) {
+            const client = masernaData.clients.find(c => c.id === clientId);
+            if (!client) return;
+            const massage = client.massages.find(m => m.id === massageId);
+            if (!massage) return;
+
+            const oldPrice = massage.price;
+
+            massage.date = parseDateFromInput(document.getElementById('editClientMassageDate').value);
+            massage.time = document.getElementById('editClientMassageTime').value;
+            massage.method = document.getElementById('editClientMassageMethod').value;
+            massage.payment = document.getElementById('editClientMassagePayment').value;
+            massage.price = parseFloat(document.getElementById('editClientMassagePrice').value);
+
+            // Aktualizace celkové částky klienta
+            client.total += (massage.price - oldPrice);
+
+            // Aktualizace globální historie masáží
+            const globalRecord = masernaData.globalMassageHistory.find(r => r.id === massageId);
+            if (globalRecord) {
+                globalRecord.date = massage.date;
+                globalRecord.time = massage.time;
+                globalRecord.method = massage.method;
+                globalRecord.payment = massage.payment;
+                globalRecord.amount = massage.price;
+            }
+
+            closeModal('editClientMassageModal');
+            updateAllTables();
+            showCustomModal('Masáž byla úspěšně upravena.', 'Masáž upravena');
+        }
+
+        // Funkce pro smazání masáže přímo u klienta (v klientské podtabulce)
+        function deleteClientMassage(clientId, massageId) {
+            confirmAndDeleteItem('clientMassage', {clientId, massageId}, 'Opravdu chcete smazat tuto masáž od klienta?');
+        }
+
+        // --- Ceník masáží: Přidání, úpravy, mazání ---
+        function addPriceListItem() {
+            const year = document.getElementById('itemYear').value;
+            const type = document.getElementById('itemType').value.trim();
+            const name = document.getElementById('priceListName').value.trim();
+            const length = document.getElementById('itemLength').value.trim();
+            const price = parseFloat(document.getElementById('itemPrice').value);
+
+            if (!year || !type || !name || !length || isNaN(price) || price < 0) {
+                showCustomModal('Prosím, vyplňte všechna pole položky ceníku.', 'Chyba zadání'); return;
+            }
+
+            masernaData.priceListItems.push({ id: Date.now().toString(), year: year, type: type, name: name, length: length, price: price, count: 0, total: 0 });
+            document.getElementById('itemYear').value = ''; document.getElementById('itemType').value = '';
+            document.getElementById('priceListName').value = ''; document.getElementById('itemLength').value = ''; document.getElementById('itemPrice').value = '';
+            updateAllTables();
+            toggleForm('priceListFormSection');
+        }
+
+        function editPriceListItem(id) {
+            const item = masernaData.priceListItems.find(i => i.id === id);
+            if (!item) return;
+            showCustomModal(`Upravit položku ceníku: ${item.name}`, `
+                <label for="editItemYear">Rok:</label>
+                <input type="number" id="editItemYear" value="${item.year}" /><br>
+                <label for="editItemType">Typ:</label>
+                <input type="text" id="editItemType" value="${item.type}" /><br>
+                <label for="editItemName">Název masáže:</label>
+                <input type="text" id="editItemName" value="${item.name}" /><br>
+                <label for="editItemLength">Délka:</label>
+                <input type="text" id="editItemLength" value="${item.length}" /><br>
+                <label for="editItemPrice">Cena (Kč):</label>
+                <input type="number" id="editItemPrice" value="${item.price}" /><br>
+            `, `
+                <button class="btn-primary" onclick="submitEditPriceListItem('${id}')">Uložit</button>
+            `);
+        }
+
+        function submitEditPriceListItem(id) {
+            const item = masernaData.priceListItems.find(i => i.id === id);
+            if (!item) return;
+            item.year = document.getElementById('editItemYear').value;
+            item.type = document.getElementById('editItemType').value;
+            item.name = document.getElementById('editItemName').value;
+            item.length = document.getElementById('editItemLength').value;
+            const newPrice = parseFloat(document.getElementById('editItemPrice').value);
+            if (!isNaN(newPrice)) {
+                item.price = newPrice;
+                item.total = item.count * newPrice; // Přepočet celkové hodnoty
+            } else {
+                showCustomModal('Prosím, zadejte platné číslo pro cenu.', 'Chyba zadání'); return;
+            }
+            closeCustomModal();
+            updateAllTables();
+        }
+
+        function deletePriceListItem(id) {
+            confirmAndDeleteItem('priceListItem', id);
+        }
+        
+        // Funkce: Přidat počet k položce ceníku
+        function addCountToPriceListItem(id) {
+            const item = masernaData.priceListItems.find(i => i.id === id);
+            if (!item) return;
+
+            lastFocusedElement = document.activeElement; // Uložíme fokus
+            const modal = document.getElementById('addCountToPriceListItemModal'); // Nové dedikované modal okno
+            
+            document.getElementById('addCountModalTitle').textContent = `Zadat počet pro: ${item.name}`;
+            document.getElementById('addCountModalItemName').textContent = `Aktuální počet: ${item.count}`; // Zobrazit aktuální počet
+            document.getElementById('editItemCount').value = item.count; // Předvyplníme aktuální počet
+            
+            document.getElementById('submitCountToPriceListItemBtn').onclick = () => submitCountToPriceListItem(id);
+            modal.style.display = 'flex';
+            modal.focus(); // Přesuneme fokus
+        }
+
+        function submitCountToPriceListItem(id) {
+            const item = masernaData.priceListItems.find(i => i.id === id);
+            if (!item) return;
+
+            const newCount = parseInt(document.getElementById('editItemCount').value);
+            if (!isNaN(newCount) && newCount >= 0) {
+                item.count = newCount;
+                item.total = item.count * item.price; // Přepočítáme celkovou hodnotu
+            } else {
+                showCustomModal('Prosím, zadejte platné kladné číslo pro počet.', 'Chyba zadání');
+                return;
+            }
+            closeModal('addCountToPriceListItemModal'); // Zavřít správný modal
+            updateAllTables();
+        }
+
+
+        // --- Historie masáží (globální): Úpravy, mazání ---
+        function editGlobalMassageRecord(id) {
+            const record = masernaData.globalMassageHistory.find(r => r.id === id);
+            if (!record) return;
+            const dateForInput = formatDateForInput(record.date);
+            showCustomModal(`Upravit záznam masáže: ${record.clientName}`, `
+                <label for="editRecordDate">Datum:</label>
+                <input type="date" id="editRecordDate" value="${dateForInput}" /><br>
+                <label for="editRecordTime">Čas:</label>
+                <input type="text" id="editRecordTime" value="${record.time}" /><br>
+                <label for="editRecordId">ID Klienta:</label>
+                <input type="text" id="editRecordId" value="${record.clientId}" disabled /><br>
+                <label for="editRecordClient">Jméno Klienta:</label>
+                <input type="text" id="editRecordClient" value="${record.clientName}" disabled /><br>
+                <label for="editRecordMethod">Metoda:</label>
+                <input type="text" id="editRecordMethod" value="${record.method}" /><br>
+                <label for="editRecordPayment">Platba (H/K/V):</label>
+                <input type="text" id="editRecordPayment" value="${record.payment}" /><br>
+                <label for="editRecordAmount">Částka (Kč):</label>
+                <input type="number" id="editRecordAmount" value="${record.amount}" /><br>
+            `, `
+                <button class="btn-primary" onclick="submitEditGlobalMassageRecord('${id}')">Uložit</button>
+            `);
+        }
+
+        function submitEditGlobalMassageRecord(id) {
+            const record = masernaData.globalMassageHistory.find(r => r.id === id);
+            if (!record) return;
+            const oldAmount = record.amount;
+
+            record.date = parseDateFromInput(document.getElementById('editRecordDate').value);
+            record.time = document.getElementById('editRecordTime').value;
+            record.method = document.getElementById('editRecordMethod').value;
+            record.payment = document.getElementById('editRecordPayment').value;
+            const newAmount = parseFloat(document.getElementById('editRecordAmount').value);
+            if (!isNaN(newAmount)) {
+                record.amount = newAmount;
+            } else {
+                showCustomModal('Prosím, zadejte platné číslo pro částku.', 'Chyba zadání'); return;
+            }
+
+            // Aktualizace dat klienta
+            const client = masernaData.clients.find(c => c.id === record.clientId);
+            if (client) {
+                client.total += (record.amount - oldAmount); // Upravíme celkovou částku klienta
+                const clientMassage = client.massages.find(m => m.id === id);
+                if (clientMassage) { // Upravíme i v historii klienta
+                    clientMassage.date = record.date;
+                    clientMassage.time = record.time;
+                    clientMassage.method = record.method;
+                    clientMassage.payment = record.payment;
+                    clientMassage.price = record.amount;
+                }
+            }
+            closeCustomModal();
+            updateAllTables();
+            showCustomModal('Záznam masáže byl úspěšně upraven.', 'Záznam upraven');
+        }
+
+        function deleteGlobalMassageRecord(id) {
+            confirmAndDeleteItem('globalMassageRecord', id, 'Opravdu chcete smazat tento záznam masáže z historie a od klienta?');
+        }
+
+        // --- Správa dárkových poukazů: Přidání, úpravy, mazání ---
+        function addVoucherPurchase() {
+            const purchaseId = document.getElementById('purchaseId').value.trim();
+            const purchasingClientName = document.getElementById('purchasingClientName').value.trim();
+            const overallPaymentType = document.getElementById('overallPaymentType').value.trim();
+
+            if (!purchaseId || !purchasingClientName) { showCustomModal('Prosím, vyplňte ID nákupu a jméno klienta.', 'Chyba zadání'); return; }
+            const client = masernaData.clients.find(c => c.name.toLowerCase() === purchasingClientName.toLowerCase());
+            if (!client) { showCustomModal('Klient s tímto jménem nebyl nalezen. Přidejte ho prosím nejdříve.', 'Klient nenalezen'); return; }
+
+
+            masernaData.voucherPurchases.push({
+                purchaseId,
+                purchasingClientName,
+                totalVouchersBought: 0,
+                totalAmountPaid: 0,
+                overallPaymentType,
+                individualVouchers: []
+            });
+            document.getElementById('purchaseId').value = ''; document.getElementById('purchasingClientName').value = '';
+            document.getElementById('overallPaymentType').value = '';
+            updateAllTables();
+            toggleForm('voucherPurchaseFormSection');
+        }
+
+        // Zobrazení modalu pro přidání individuálního poukazu (po výběru nákupu)
+        function showAddIndividualVoucherModal(purchaseId) {
+            lastFocusedElement = document.activeElement;
+            const modal = document.getElementById('addIndividualVoucherModal');
+            document.getElementById('submitAddIndividualVoucher').onclick = () => addIndividualVoucher(purchaseId);
+            
+            // Vyčistit předchozí hodnoty
+            document.getElementById('newVoucherType').value = '';
+            document.getElementById('newVoucherIssueDate').value = '';
+            document.getElementById('newVoucherValue').value = '';
+
+            modal.style.display = 'flex';
+            modal.focus();
+        }
+
+        function addIndividualVoucher(purchaseId) {
+            const voucherType = document.getElementById('newVoucherType').value.trim();
+            const issueDate = parseDateFromInput(document.getElementById('newVoucherIssueDate').value); // DD.MM.YYYY
+            const voucherValue = parseFloat(document.getElementById('newVoucherValue').value);
+
+            if (!voucherType || !issueDate || isNaN(voucherValue) || voucherValue < 0) {
+                showCustomModal('Vyplňte prosím všechna pole pro nový poukaz.', 'Chyba zadání'); return;
+            }
+
+            const purchase = masernaData.voucherPurchases.find(p => p.purchaseId === purchaseId);
+            if (!purchase) { showCustomModal('Nákup poukazů nebyl nalezen.', 'Chyba'); return; }
+
+            const newVoucher = {
+                voucherId: `${purchaseId}_${purchase.individualVouchers.length + 1}`, // Generujeme unikátní ID
+                voucherType, issueDate,
+                redeemedBy: '', redemptionDates: '',
+                voucherValue
+            };
+
+            purchase.individualVouchers.push(newVoucher);
+            purchase.totalVouchersBought++;
+            purchase.totalAmountPaid += voucherValue;
+
+            closeModal('addIndividualVoucherModal');
+            updateAllTables();
+            showCustomModal('Poukaz byl úspěšně přidán k nákupu.', 'Poukaz přidán');
+        }
+
+        function editVoucherPurchase(id) {
+            const p = masernaData.voucherPurchases.find(purchase => purchase.purchaseId === id);
+            if (!p) return;
+            showCustomModal(`Upravit nákup poukazů: ${p.purchaseId}`, `
+                <label for="editPurchaseId">ID nákupu:</label>
+                <input type="text" id="editPurchaseId" value="${p.purchaseId}" disabled /><br>
+                <label for="editPurchasingClientName">Jméno kupujícího klienta:</label>
+                <input type="text" id="editPurchasingClientName" value="${p.purchasingClientName}" /><br>
+                <label for="editOverallPaymentType">Typ platby (H/K/V):</label>
+                <input type="text" id="editOverallPaymentType" value="${p.overallPaymentType}" /><br>
+                <p class="text-sm text-gray-400"><i>Počet poukazů a celková hodnota se aktualizují úpravou jednotlivých poukazů.</i></p>
+            `, `
+                <button class="btn-primary" onclick="submitEditVoucherPurchase('${id}')">Uložit</button>
+            `, true); // showCancel = true
+        }
+
+        function submitEditVoucherPurchase(id) {
+            const p = masernaData.voucherPurchases.find(purchase => purchase.purchaseId === id);
+            if (!p) return;
+            p.purchasingClientName = document.getElementById('editPurchasingClientName').value.trim();
+            p.overallPaymentType = document.getElementById('editOverallPaymentType').value.trim();
+            closeCustomModal();
+            updateAllTables();
+        }
+
+        function deleteVoucherPurchase(id) {
+            confirmAndDeleteItem('voucherPurchase', id, 'Opravdu chcete smazat tento nákup poukazů a všechny jeho individuální poukazy?');
+        }
+
+        function editIndividualVoucher(purchaseId, voucherId) {
+            const purchase = masernaData.voucherPurchases.find(p => p.purchaseId === purchaseId);
+            if (!purchase) return;
+            const voucher = purchase.individualVouchers.find(v => v.voucherId === voucherId);
+            if (!voucher) return;
+
+            const issueDateForInput = formatDateForInput(voucher.issueDate);
+            
+            lastFocusedElement = document.activeElement; // Uložíme fokus
+            const modal = document.getElementById('editIndividualVoucherModal');
+            document.getElementById('editIndividualVoucherModalTitle').textContent = `Upravit poukaz: ${voucher.voucherId}`;
+            document.getElementById('editVoucherType').value = voucher.voucherType;
+            document.getElementById('editVoucherIssueDate').value = issueDateForInput;
+            document.getElementById('editRedeemedBy').value = voucher.redeemedBy;
+            document.getElementById('editRedemptionDates').value = voucher.redemptionDates;
+            document.getElementById('editVoucherValue').value = voucher.voucherValue;
+
+            document.getElementById('submitEditIndividualVoucher').onclick = () => submitEditIndividualVoucher(purchaseId, voucherId);
+            modal.style.display = 'flex';
+            modal.focus();
+        }
+
+        function submitEditIndividualVoucher(purchaseId, voucherId) {
+            const purchase = masernaData.voucherPurchases.find(p => p.purchaseId === purchaseId);
+            if (!purchase) return;
+            const voucher = purchase.individualVouchers.find(v => v.voucherId === voucherId);
+            if (!voucher) return;
+
+            const oldVoucherValue = voucher.voucherValue;
+
+            voucher.voucherType = document.getElementById('editVoucherType').value.trim();
+            voucher.issueDate = parseDateFromInput(document.getElementById('editVoucherIssueDate').value);
+            voucher.redeemedBy = document.getElementById('editRedeemedBy').value.trim();
+            voucher.redemptionDates = document.getElementById('editRedemptionDates').value.trim();
+            const newVoucherValue = parseFloat(document.getElementById('editVoucherValue').value);
+            if (!isNaN(newVoucherValue) && newVoucherValue >= 0) {
+                voucher.voucherValue = newVoucherValue;
+            } else {
+                showCustomModal('Zadejte prosím platnou hodnotu poukazu.', 'Chyba zadání'); return;
+            }
+
+            purchase.totalAmountPaid += (voucher.voucherValue - oldVoucherValue); // Přepočítáme celkovou hodnotu nákupu
+            closeModal('editIndividualVoucherModal');
+            updateAllTables();
+            showCustomModal('Poukaz byl úspěšně upraven.', 'Poukaz upraven');
+        }
+
+        function deleteIndividualVoucher(purchaseId, voucherId) {
+            confirmAndDeleteItem('individualVoucher', { purchaseId, voucherId }, 'Opravdu chcete smazat tento konkrétní poukaz?');
+        }
+
+        // --- Klienti: Poznámky ke klientovi ---
+        function addClientNote() {
+            const clientName = document.getElementById('clientNoteClientName').value.trim();
+            const noteText = document.getElementById('clientNoteText').value.trim();
+
+            if (!clientName || !noteText) { showCustomModal('Prosím, vyplňte jméno klienta a text poznámky.', 'Chyba zadání'); return; }
+            const client = masernaData.clients.find(c => c.name.toLowerCase() === clientName.toLowerCase());
+            if (!client) { showCustomModal('Klient s tímto jménem nebyl nalezen. Přidejte ho prosím nejdříve.', 'Klient nenalezen'); return; }
+
+            client.clientNotes.push({ id: Date.now().toString(), text: noteText });
+            document.getElementById('clientNoteClientName').value = '';
+            document.getElementById('clientNoteText').value = '';
+            updateAllTables();
+            toggleForm('clientNoteFormSection');
+            showCustomModal('Poznámka byla úspěšně přidána ke klientovi.', 'Poznámka přidána');
+        }
+
+        function editClientNote(clientId, noteId) {
+            const client = masernaData.clients.find(c => c.id === clientId);
+            if (!client) return;
+            const note = client.clientNotes.find(n => n.id === noteId);
+            if (!note) return;
+
+            lastFocusedElement = document.activeElement;
+            const modal = document.getElementById('editClientNoteModal');
+            document.getElementById('editClientNoteModalTitle').textContent = `Upravit poznámku pro ${client.name}`;
+            document.getElementById('editClientNoteText').value = note.text;
+
+            document.getElementById('submitEditClientNote').onclick = () => submitEditClientNote(clientId, noteId);
+            modal.style.display = 'flex';
+            modal.focus();
+        }
+
+        function submitEditClientNote(clientId, noteId) {
+            const client = masernaData.clients.find(c => c.id === clientId);
+            if (!client) return;
+            const note = client.clientNotes.find(n => n.id === noteId);
+            if (!note) return;
+
+            note.text = document.getElementById('editClientNoteText').value.trim();
+            closeModal('editClientNoteModal');
+            updateAllTables();
+            showCustomModal('Poznámka byla úspěšně upravena.', 'Poznámka upravena');
+        }
+
+        function deleteClientNote(clientId, noteId) {
+            confirmAndDeleteItem('clientNote', { clientId, noteId }, 'Opravdu chcete smazat tuto poznámku?');
+        }
+
+        // --- Globální funkce pro aktualizaci tabulek ---
+        function updateAllTables() {
+            displayClients();
+            displayPriceList();
+            displayGlobalMassageHistory();
+            displayVoucherPurchases();
+        }
+
+        // Funkce pro zobrazení klientů
+        function displayClients() {
+            const tbody = document.querySelector('#clientTable tbody');
+            tbody.innerHTML = '';
+            const filterInput = document.getElementById('globalFilterInput').value.toLowerCase();
+
+            const filteredClients = masernaData.clients.filter(c =>
+                c.id.toLowerCase().includes(filterInput) ||
+                c.name.toLowerCase().includes(filterInput) ||
+                c.phone.toLowerCase().includes(filterInput) ||
+                c.diag.toLowerCase().includes(filterInput)
+            );
+
+            // Řazení klientů abecedně podle jména
+            filteredClients.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+            filteredClients.forEach(client => {
+                const row = document.createElement('tr');
+                row.className = client.expanded ? 'active-client-row' : ''; // Pro zvýraznění rozbaleného řádku
+                row.innerHTML = `
+                    <td>${client.id}</td>
+                    <td><button onclick="toggleClientDetails('${client.id}')">${client.name}</button></td>
+                    <td>${client.phone}</td>
+                    <td>${client.diag}</td>
+                    <td>${client.count}</td>
+                    <td>${client.total.toLocaleString('cs-CZ')} Kč</td>
+                    <td>${client.methods.join(', ')}</td>
+                    <td>
+                        <button class="btn-secondary" onclick="editClient('${client.id}')">Upravit</button>
+                        <button class="btn-danger" onclick="deleteClient('${client.id}')">Smazat</button>
+                        <button class="btn-export" onclick="exportItemToTxt('client', '${client.id}')">Export TXT</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+
+                // Zobrazení detailů klienta (podtabulky)
+                const detailRow = document.createElement('tr');
+                detailRow.id = `client-details-${client.id}`;
+                detailRow.className = client.expanded ? '' : 'hidden'; // Skryté, pokud není rozbaleno
+                
+                let clientMassagesHtml = '';
+                if (client.massages.length > 0) {
+                    clientMassagesHtml = client.massages.map(m => `
+                        <tr>
+                            <td>${m.date}</td><td>${m.time}</td><td>${m.method}</td><td>${m.payment}</td><td>${m.price} Kč</td>
+                            <td>
+                                <button class="btn-secondary" onclick="editClientMassage('${client.id}', '${m.id}')">Upravit</button>
+                                <button class="btn-danger" onclick="deleteClientMassage('${client.id}', '${m.id}')">Smazat</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    clientMassagesHtml = `<tr><td colspan="6">Žádné masáže pro tohoto klienta.</td></tr>`;
+                }
+
+                let clientVouchersHtml = '';
+                const vouchersForThisClient = getVouchersForClient(client.name);
+                if (vouchersForThisClient.length > 0) {
+                    clientVouchersHtml = vouchersForThisClient.map(v => `
+                        <tr>
+                            <td>${v.voucherId || 'N/A'}</td><td>${v.voucherType}</td><td>${v.voucherValue} Kč</td><td>${v.issueDate}</td><td>${calculateExpiryDate(v.issueDate)}</td><td>${v.redeemedBy || '---'}</td>
+                            <td>
+                                <button class="btn-secondary" onclick="editIndividualVoucher('${v.purchaseId}', '${v.voucherId}')">Upravit</button>
+                                <button class="btn-danger" onclick="deleteIndividualVoucher('${v.purchaseId}', '${v.voucherId}')">Smazat</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    clientVouchersHtml = `<tr><td colspan="7">Žádné poukazy zakoupené tímto klientem.</td></tr>`;
+                }
+
+                let clientNotesHtml = '';
+                if (client.clientNotes.length > 0) {
+                    clientNotesHtml = client.clientNotes.map(note => `
+                        <tr>
+                            <td>${note.text}</td>
+                            <td>
+                                <button class="btn-secondary" onclick="editClientNote('${client.id}', '${note.id}')">Upravit</button>
+                                <button class="btn-danger" onclick="deleteClientNote('${client.id}', '${note.id}')">Smazat</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    clientNotesHtml = `<tr><td colspan="2">Žádné poznámky pro tohoto klienta.</td></tr>`;
+                }
+
+
+                detailRow.innerHTML = `<td colspan="8">
+                    <div class="client-detail-section">
+                        <h3>Absolvované masáže (${client.massages.length}) <button onclick="toggleClientSubTable('${client.id}', 'massages')">Zobrazit/Sbalit</button></h3>
+                        <div id="client-${client.id}-massages" class="table-responsive ${client.subTables && client.subTables.massages ? '' : 'hidden'}">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Datum</th><th>Čas</th><th>Metoda</th><th>Platba</th><th>Cena</th><th>Akce</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${clientMassagesHtml}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Dárkové poukazy (${vouchersForThisClient.length}) <button onclick="toggleClientSubTable('${client.id}', 'vouchers')">Zobrazit/Sbalit</button></h3>
+                        <div id="client-${client.id}-vouchers" class="table-responsive ${client.subTables && client.subTables.vouchers ? '' : 'hidden'}">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID Poukazu</th><th>Typ</th><th>Hodnota</th><th>Vystaveno</th><th>Platí do</th><th>Využil/a</th><th>Akce</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${clientVouchersHtml}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Poznámky (${client.clientNotes.length}) <button onclick="toggleClientSubTable('${client.id}', 'notes')">Zobrazit/Sbalit</button></h3>
+                        <div id="client-${client.id}-notes" class="table-responsive ${client.subTables && client.subTables.notes ? '' : 'hidden'}">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Text poznámky</th><th>Akce</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${clientNotesHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </td>`;
+                tbody.appendChild(detailRow);
+            });
+        }
+
+        function toggleClientDetails(clientId) {
+            const client = masernaData.clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            client.expanded = !client.expanded; // Přepínáme stav rozbalení klienta
+            const detailRow = document.getElementById(`client-details-${clientId}`);
+            if (detailRow) {
+                detailRow.classList.toggle('hidden', !client.expanded); // Skryjeme/zobrazíme celý řádek s detaily
+                // Aktualizujeme třídu na hlavním řádku klienta
+                const mainRow = detailRow.previousElementSibling; // Předchozí řádek je hlavní řádek klienta
+                mainRow.classList.toggle('active-client-row', client.expanded);
+            }
+            // Není třeba updateAllTables() zde, protože to způsobuje re-render celé stránky a zavření/otevření detailů
+            // Pokud chceme, aby se podtabulky aktualizovaly, musíme je volat explicitně
+            // displayClients(); // Re-renderuje jen hlavní tabulku klientů
+        }
+
+        // Funkce pro přepínání viditelnosti podtabulek klienta
+        function toggleClientSubTable(clientId, subTableType) {
+            const client = masernaData.clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            if (!client.subTables) {
+                client.subTables = { massages: false, vouchers: false, notes: false };
+            }
+            client.subTables[subTableType] = !client.subTables[subTableType]; // Přepínáme stav podtabulky
+
+            const subTableContainer = document.getElementById(`client-${clientId}-${subTableType}`);
+            if (subTableContainer) {
+                subTableContainer.classList.toggle('hidden', !client.subTables[subTableType]);
+            }
+            // Zde nepotřebujeme updateAllTables, protože by to zavřelo/otevřelo celé detaily klienta
+            // Pouze aktualizujeme viditelnost sub-tabulky
+        }
+        
+        // Pomocná funkce pro získání poukazů pro konkrétního klienta
+        function getVouchersForClient(clientName) {
+            const clientVouchers = [];
+            masernaData.voucherPurchases.forEach(purchase => {
+                if (purchase.purchasingClientName.toLowerCase() === clientName.toLowerCase()) {
+                    clientVouchers.push(...purchase.individualVouchers.map(v => ({...v, purchaseId: purchase.purchaseId}))); // Přidáme purchaseId pro mazání/úpravy
+                }
+            });
+            return clientVouchers;
+        }
+
+
+        // Funkce pro zobrazení ceníku
+        function displayPriceList() {
+            const tbody = document.querySelector('#priceListTable tbody');
+            tbody.innerHTML = '';
+            const filterInput = document.getElementById('globalFilterInput').value.toLowerCase();
+
+            const filteredItems = masernaData.priceListItems.filter(item =>
+                item.year.toString().includes(filterInput) ||
+                item.type.toLowerCase().includes(filterInput) ||
+                item.name.toLowerCase().includes(filterInput) ||
+                item.length.toLowerCase().includes(filterInput) ||
+                item.price.toString().includes(filterInput)
+            );
+
+            // Řazení ceníku podle roku, pak typu, pak názvu
+            filteredItems.sort((a, b) => {
+                if (a.year !== b.year) return a.year - b.year;
+                if (a.type.toLowerCase() !== b.type.toLowerCase()) return a.type.toLowerCase().localeCompare(b.type.toLowerCase());
+                return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+            });
+
+            filteredItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.year}</td>
+                    <td>${item.type}</td>
+                    <td>${item.name}</td>
+                    <td>${item.length}</td>
+                    <td>${item.price} Kč</td>
+                    <td>${item.count}</td>
+                    <td>${item.total} Kč</td>
+                    <td>
+                        <button class="btn-primary" onclick="addCountToPriceListItem('${item.id}')">Přidat data</button>
+                        <button class="btn-secondary" onclick="editPriceListItem('${item.id}')">Upravit</button>
+                        <button class="btn-danger" onclick="deletePriceListItem('${item.id}')">Smazat</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Funkce pro zobrazení globální historie masáží
+        function displayGlobalMassageHistory() {
+            const tbody = document.querySelector('#globalMassageHistoryTable tbody');
+            tbody.innerHTML = '';
+            const filterInput = document.getElementById('globalFilterInput').value.toLowerCase();
+
+            const filteredRecords = masernaData.globalMassageHistory.filter(record =>
+                record.date.includes(filterInput) ||
+                record.clientName.toLowerCase().includes(filterInput) ||
+                record.method.toLowerCase().includes(filterInput) ||
+                record.amount.toString().includes(filterInput)
+            );
+
+            // Řazení historie od nejnovější po nejstarší
+            filteredRecords.sort((a, b) => {
+                const dateA = new Date(formatDateForInput(a.date));
+                const dateB = new Date(formatDateForInput(b.date));
+                return dateB - dateA;
+            });
+
+            filteredRecords.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.time}</td>
+                    <td>${record.clientId}</td>
+                    <td>${record.clientName}</td>
+                    <td>${record.method}</td>
+                    <td>${record.payment}</td>
+                    <td>${record.amount} Kč</td>
+                    <td>
+                        <button class="btn-secondary" onclick="editGlobalMassageRecord('${record.id}')">Upravit</button>
+                        <button class="btn-danger" onclick="deleteGlobalMassageRecord('${record.id}')">Smazat</button>
+                        <button class="btn-export" onclick="exportItemToTxt('globalMassageRecord', '${record.id}')">Export TXT</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Funkce pro zobrazení nákupů poukazů
+        function displayVoucherPurchases() {
+            const tbody = document.querySelector('#voucherTable tbody');
+            tbody.innerHTML = '';
+            const filterInput = document.getElementById('globalFilterInput').value.toLowerCase();
+
+            const filteredPurchases = masernaData.voucherPurchases.filter(p =>
+                p.purchaseId.toLowerCase().includes(filterInput) ||
+                p.purchasingClientName.toLowerCase().includes(filterInput) ||
+                p.overallPaymentType.toLowerCase().includes(filterInput) ||
+                p.totalAmountPaid.toString().includes(filterInput)
+            );
+
+            // Řazení nákupů poukazů podle ID nákupu nebo data
+            filteredPurchases.sort((a, b) => a.purchaseId.toLowerCase().localeCompare(b.purchaseId.toLowerCase()));
+
+
+            filteredPurchases.forEach(purchase => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${purchase.purchaseId}</td>
+                    <td><button onclick="toggleVoucherPurchaseDetails('${purchase.purchaseId}')">${purchase.purchasingClientName}</button></td>
+                    <td>${purchase.totalVouchersBought}</td>
+                    <td>${purchase.totalAmountPaid.toLocaleString('cs-CZ')} Kč</td>
+                    <td>${purchase.overallPaymentType}</td>
+                    <td>
+                        <button class="btn-primary" onclick="showAddIndividualVoucherModal('${purchase.purchaseId}')">Přidat poukaz</button>
+                        <button class="btn-secondary" onclick="editVoucherPurchase('${purchase.purchaseId}')">Upravit</button>
+                        <button class="btn-danger" onclick="deleteVoucherPurchase('${purchase.purchaseId}')">Smazat</button>
+                        <button class="btn-export" onclick="exportItemToTxt('voucherPurchase', '${purchase.purchaseId}')">Export TXT</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+
+                // Detailní zobrazení individuálních poukazů pod nákupem
+                const detailRow = document.createElement('tr');
+                detailRow.id = `voucher-purchase-details-${purchase.purchaseId}`;
+                detailRow.className = purchase.expanded ? '' : 'hidden'; // Skryté, pokud není rozbaleno
+                
+                let vouchersHtml = '';
+                if (purchase.individualVouchers.length > 0) {
+                    vouchersHtml = purchase.individualVouchers.map(v => `
+                        <div class="detail-entry flex items-center justify-between flex-wrap p-2 border-b border-gray-700 last:border-b-0">
+                            <span class="flex-grow">
+                                <strong>ID:</strong> ${v.voucherId || 'N/A'} |
+                                <strong>Typ:</strong> ${v.voucherType} |
+                                <strong>Hodnota:</strong> ${v.voucherValue} Kč |
+                                <strong>Vystaveno:</strong> ${v.issueDate} |
+                                <strong>Platí do:</strong> ${calculateExpiryDate(v.issueDate)} |
+                                <strong>Využil:</strong> ${v.redeemedBy || 'N/A'} |
+                                <strong>Použito:</strong> ${v.redemptionDates || 'N/A'}
+                            </span>
+                            <div class="flex-shrink-0 ml-4">
+                                <button class="btn-secondary" onclick="editIndividualVoucher('${purchase.purchaseId}', '${v.voucherId}')">Upravit</button>
+                                <button class="btn-danger" onclick="deleteIndividualVoucher('${purchase.purchaseId}', '${v.voucherId}')">Smazat</button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    vouchersHtml = `<div class="detail-entry p-2"><span>Žádné individuální poukazy v tomto nákupu.</span></div>`;
+                }
+
+                detailRow.innerHTML = `<td colspan="6"><div class="client-detail-section">${vouchersHtml}</div></td>`;
+                tbody.appendChild(detailRow);
+            });
+        }
+
+        function toggleVoucherPurchaseDetails(purchaseId) {
+            const purchase = masernaData.voucherPurchases.find(p => p.purchaseId === purchaseId); 
+            if (!purchase) return;
+            purchase.expanded = !purchase.expanded;
+            const detailRow = document.getElementById(`voucher-purchase-details-${purchaseId}`);
+            if (detailRow) {
+                detailRow.classList.toggle('hidden', !purchase.expanded);
+                const mainRow = detailRow.previousElementSibling;
+                mainRow.classList.toggle('active-client-row', purchase.expanded);
+            }
+        }
+
+
+        // --- Globální funkce pro správu dat a tabulky ---
+        // Nahrazuje confirm() vlastním modalem
+        function confirmAndDeleteItem(type, id, message = 'Opravdu chcete odstranit tento záznam?') {
+            showCustomModal(message, 'Potvrdit smazání', () => {
+                if (type === 'client') {
+                    const clientToDelete = masernaData.clients.find(c => c.id === id);
+                    if (clientToDelete) {
+                        masernaData.globalMassageHistory = masernaData.globalMassageHistory.filter(m => m.clientId !== id);
+                        masernaData.voucherPurchases = masernaData.voucherPurchases.filter(p => p.purchasingClientName.toLowerCase() !== clientToDelete.name.toLowerCase());
+                        masernaData.voucherPurchases.forEach(p => {
+                            p.individualVouchers = p.individualVouchers.filter(v => v.redeemedBy.toLowerCase() !== clientToDelete.name.toLowerCase());
+                        });
+                    }
+                    masernaData.clients = masernaData.clients.filter(c => c.id !== id);
+                } else if (type === 'clientMassage') {
+                    const clientId = id.clientId;
+                    const massageId = id.massageId;
+                    const client = masernaData.clients.find(c => c.id === clientId);
+                    if (client) {
+                        const massage = client.massages.find(m => m.id === massageId);
+                        if (massage) {
+                            client.total -= massage.price;
+                            client.count--;
+                            client.massages = client.massages.filter(m => m.id !== massageId);
+                        }
+                    }
+                    masernaData.globalMassageHistory = masernaData.globalMassageHistory.filter(m => m.id !== massageId);
+                } else if (type === 'priceListItem') {
+                    masernaData.priceListItems = masernaData.priceListItems.filter(item => item.id !== id);
+                } else if (type === 'globalMassageRecord') {
+                    const recordToDelete = masernaData.globalMassageHistory.find(r => r.id === id);
+                    if (recordToDelete) {
+                        const client = masernaData.clients.find(c => c.id === recordToDelete.clientId);
+                        if (client) {
+                            const clientMassage = client.massages.find(m => m.id === id);
+                            if (clientMassage) {
+                                client.total -= clientMassage.price;
+                                client.count--;
+                                client.massages = client.massages.filter(m => m.id !== id);
+                            }
+                        }
+                    }
+                    masernaData.globalMassageHistory = masernaData.globalMassageHistory.filter(record => record.id !== id);
+                } else if (type === 'voucherPurchase') {
+                    masernaData.voucherPurchases = masernaData.voucherPurchases.filter(p => p.purchaseId !== id);
+                } else if (type === 'individualVoucher') {
+                    const purchaseId = id.purchaseId;
+                    const voucherId = id.voucherId;
+                    const purchase = masernaData.voucherPurchases.find(p => p.purchaseId === purchaseId);
+                    if (purchase) {
+                        const voucher = purchase.individualVouchers.find(v => v.voucherId === voucherId);
+                        if (voucher) {
+                            purchase.totalVouchersBought--;
+                            purchase.totalAmountPaid -= voucher.voucherValue;
+                            purchase.individualVouchers = purchase.individualVouchers.filter(v => v.voucherId !== voucherId);
+                        }
+                    }
+                } else if (type === 'clientNote') {
+                    const clientId = id.clientId;
+                    const noteId = id.noteId;
+                    const client = masernaData.clients.find(c => c.id === clientId);
+                    if (client) {
+                        client.clientNotes = client.clientNotes.filter(n => n.id !== noteId);
+                    }
+                }
+                updateAllTables();
+            }, true); // showCancel = true pro potvrzovací modal
+        }
+
+        // --- Globální export/import všech dat Masérny ---
+        function exportAllMasernaData() {
+            try {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(masernaData));
+                const dl = document.createElement('a');
+                dl.setAttribute("href", dataStr);
+                dl.setAttribute("download", "maserna_data.json");
+                dl.click();
+                showCustomModal("Všechna data Masérny byla úspěšně exportována jako JSON.");
+            } catch (error) {
+                console.error("Chyba při exportu JSON dat Masérny:", error);
+                showCustomModal("Nastala chyba při exportu dat Masérny. Zkuste to prosím znovu.", 'Chyba exportu');
+            }
+        }
+
+        function importAllMasernaData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    // Základní kontrola formátu hlavních kolekcí
+                    if (importedData && typeof importedData === 'object' &&
+                        'clients' in importedData && Array.isArray(importedData.clients) &&
+                        'priceListItems' in importedData && Array.isArray(importedData.priceListItems) &&
+                        'globalMassageHistory' in importedData && Array.isArray(importedData.globalMassageHistory) &&
+                        'voucherPurchases' in importedData && Array.isArray(importedData.voucherPurchases)) {
+                        
+                        // Zajistíme konzistenci ID a dalších vlastností po importu
+                        importedData.clients.forEach(c => {
+                            c.id = c.id ? String(c.id) : Date.now().toString();
+                            c.massages.forEach(m => m.id = m.id ? String(m.id) : Date.now().toString());
+                            c.clientNotes.forEach(n => n.id = n.id ? String(n.id) : Date.now().toString());
+                            if (typeof c.expanded !== 'boolean') c.expanded = false; // Nastavíme výchozí stav
+                            if (typeof c.subTables !== 'object' || c.subTables === null) c.subTables = { massages: false, vouchers: false, notes: false }; // Nastavíme výchozí stav
+                        });
+                        importedData.priceListItems.forEach(item => item.id = item.id ? String(item.id) : Date.now().toString());
+                        importedData.globalMassageHistory.forEach(item => item.id = item.id ? String(item.id) : Date.now().toString());
+                        importedData.voucherPurchases.forEach(purchase => {
+                            purchase.purchaseId = purchase.purchaseId ? String(purchase.purchaseId) : Date.now().toString(); // ID pro nákup
+                            purchase.individualVouchers.forEach(v => v.voucherId = v.voucherId ? String(v.voucherId) : Date.now().toString());
+                            if (typeof purchase.expanded !== 'boolean') purchase.expanded = false; // Nastavíme výchozí stav
+                        });
+
+                        masernaData = importedData;
+                        updateAllTables();
+                        showCustomModal('Data Masérny byla úspěšně importována!');
+                    } else {
+                        showCustomModal('Chyba: Importovaný soubor nemá očekávaný formát pro aplikaci Masérna.', 'Chyba importu');
+                    }
+                } catch (e) {
+                    console.error("Chyba při importu JSON souboru:", e);
+                    showCustomModal('Chyba při čtení JSON souboru: ' + e.message, 'Chyba importu');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearFilter() {
+            document.getElementById('globalFilterInput').value = '';
+            updateAllTables();
+        }
+
+        // Počáteční zobrazení tabulek při načtení stránky
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializace event listeneru pro tlačítko OK modalu
+            document.getElementById('modalOkButton').addEventListener('click', closeCustomModal);
+            // Vytvoření a připojení tlačítka Zrušit modalu (pokud neexistuje)
+            const modalButtonsDiv = document.getElementById('modalOkButton').parentNode;
+            let cancelButton = document.getElementById('modalCancelButton');
+            if (!cancelButton) {
+                cancelButton = document.createElement('button');
+                cancelButton.id = 'modalCancelButton';
+                cancelButton.className = 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md ml-2 hidden';
+                cancelButton.textContent = 'Zrušit';
+                cancelButton.onclick = closeCustomModal; // Zavře modal na Zrušit
+                modalButtonsDiv.insertBefore(cancelButton, document.getElementById('modalOkButton').nextSibling);
+            }
+            // Zajištění, že se modal zavře i při stisku Escape
+            document.getElementById('customMessageModal').addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeCustomModal();
+            });
+
+            updateAllTables(); // Zobrazí tabulky při načtení
+        });
+    </script>
+</body>
+</html>

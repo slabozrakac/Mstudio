@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mstudio - Dashboard</title>
+    <!-- Tailwind CSS pro jednoduché a responzivní stylování -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Vlastní styly pro vysoký kontrast a lepší čitelnost */
+        body {
+            background-color: #000;
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+            padding: 1rem;
+        }
+        .container {
+            max-width: 4xl;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #1a1a1a;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #facc15;
+            /* Výrazně zvětšený nadpis Mstudio */
+            font-size: 4rem; /* Změna z 2.5rem */
+            font-weight: 900; /* Extra tučné */
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        h2 { /* Tento styl už se přímo nepoužije pro kategorie, ale necháváme ho pro jistotu */
+            color: #facc15;
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #555;
+            padding-bottom: 0.5rem;
+        }
+        /* Styly pro odkazy aplikací */
+        .app-link {
+            display: block;
+            padding: 1.5rem 2rem;
+            margin-bottom: 1rem;
+            background-color: #2d3748; /* Tmavší modrá */
+            color: #e2e8f0; /* Světlý text */
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            /* Nová úprava: Maximální šířka pro užší vzhled */
+            max-width: 450px; /* Omezíme šířku */
+            margin-left: auto; /* Vycentrování */
+            margin-right: auto; /* Vycentrování */
+        }
+        .app-link:hover {
+            background-color: #4a5568; /* Světlejší modrá při najetí */
+            transform: translateY(-2px);
+        }
+        .app-link:focus {
+            outline: 2px solid #facc15;
+            outline-offset: 2px;
+        }
+
+        /* Responzivní úpravy */
+        @media (max-width: 768px) {
+            h1 { font-size: 3rem; } /* Zmenšíme na mobilu */
+            .app-link { 
+                font-size: 1rem; 
+                padding: 1rem 1.5rem; 
+                max-width: 100%; /* Na mobilu se roztáhne na celou šířku */
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container">
+        <!-- Zvětšený hlavní nadpis projektu -->
+        <h1 class="text-5xl font-extrabold text-center text-yellow-300 mb-6 mt-8">Mstudio</h1>
+
+        <!-- Zkrácený úvodní popis a instrukce -->
+        <p class="text-lg text-gray-300 text-center mb-12 leading-relaxed">
+            Vítejte v **Mstudio**.
+            <br><br>
+            Pro navigaci použijte klávesu <kbd class="bg-gray-700 text-white px-2 py-1 rounded-md text-sm">Tab</kbd> pro přesun mezi aplikacemi.
+            Stiskněte <kbd class="bg-gray-700 text-white px-2 py-1 rounded-md text-sm">Enter</kbd> pro spuštění vybrané aplikace.
+        </p>
+
+        <!-- Sjednocený seznam aplikací a návodů bez kategorií -->
+        <div class="space-y-4">
+            <a href="Data/2. Návody/01. navod-k-pouziti.html" target="_blank" class="app-link">Kompletní návod k použití</a>
+            <a href="Data/2. Návody/02. navod-pridavani-aplikace.html" target="_blank" class="app-link">Návod pro přidávání aplikací</a>
+            <a href="Data/1. Aplikace/01. maserna.html" class="app-link">Masérna</a>
+            <a href="Data/1. Aplikace/02. financni-spravce.html" class="app-link">Finanční správce</a>
+            <a href="Data/1. Aplikace/03. zaznamnik.html" class="app-link">Centrální záznamník</a>
+            <a href="Data/1. Aplikace/04. generator.html" class="app-link">Generátor poukazů a QR kódů</a>
+        </div>
+
+    </div>
+</body>
+</html>
